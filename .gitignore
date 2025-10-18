@@ -1,0 +1,14 @@
+# Eclipse / IDE
+.project
+.classpath
+.settings/
+.idea/
+*.iml
+
+# Build
+bin/
+target/
+out/
+
+# macOS
+.DS_Store
