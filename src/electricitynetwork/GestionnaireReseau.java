@@ -7,8 +7,13 @@ import java.util.Scanner;
 
 public class GestionnaireReseau {
 
-    Scanner sc = new Scanner(System.in);
-    ReseauElectrique re = new ReseauElectrique();
+    Scanner sc;
+    ReseauElectrique re;
+    
+    public GestionnaireReseau(Scanner sc) {
+    	this.sc = sc;
+    	re = new ReseauElectrique();
+    }
 
     public void demarrer() {
         int choix;
@@ -16,17 +21,24 @@ public class GestionnaireReseau {
 
         while (true) {
             afficherMenu();
-            choix = sc.nextInt();
-            sc.nextLine();
+            choix = lireChoix();
             if (choix == 4) {
-                if (fin()) {
-                    break; 
-                }
+                if (fin()) break;
             } else {
                 operation(choix);
             }
         }
         affichageReseau();
+    }
+    
+    private int lireChoix() {
+        while (!sc.hasNextInt()) { 
+        	sc.nextLine(); 
+        	System.out.println("Choix invalide: ");
+        }
+        int choix = sc.nextInt(); 
+        sc.nextLine();
+        return choix;
     }
 
     public void afficherMenu() {

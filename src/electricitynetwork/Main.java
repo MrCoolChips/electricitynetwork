@@ -1,10 +1,14 @@
 package electricitynetwork;
 
+import java.util.Scanner;
+
 public class Main {
 
     public static void main(String[] args) {
-        GestionnaireReseau gestionnaireReseau = new GestionnaireReseau();
+    	Scanner sc = new Scanner(System.in);
+        GestionnaireReseau gestionnaireReseau = new GestionnaireReseau(sc);
         gestionnaireReseau.demarrer();
+        sc.close();
     }
     
 }

@@ -18,8 +18,20 @@ public class Generateur {
         return capaciteMaximale;
     }
 
-    public void setCapaciteMaximale(Double capacite) {
+    public void setCapaciteMaximale(double capacite) {
         this.capaciteMaximale = capacite;
+    }
+    
+    public boolean equals(Object o) {
+        if (this == o) { 
+        	return true;
+        }
+        
+        if (!(o instanceof Generateur)) { 
+        	return false;
+        }
+        
+        return nom.equals(((Generateur) o).nom.toUpperCase());
     }
     
 }

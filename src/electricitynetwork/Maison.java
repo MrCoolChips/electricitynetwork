@@ -22,16 +22,20 @@ public class Maison {
         this.typeConsommation = typeConsommation;
     }
 
-    public int getConsommation(TypeConsommation typeConsommation) {
-        if(typeConsommation == TypeConsommation.BASSE) {
-            return 10;
+    public int getConsommation() {
+        return typeConsommation.demand();
+    }
+    
+    public boolean equals(Object o) {
+        if (this == o) { 
+        	return true;
         }
-        else if(typeConsommation == TypeConsommation.NORMAL) {
-            return 20;
+        
+        if (!(o instanceof Maison)) { 
+        	return false;
         }
-        else {
-            return 40;
-        }
+        
+        return nom.equals(((Maison) o).nom.toUpperCase());
     }
     
 }
