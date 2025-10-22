@@ -26,6 +26,10 @@ public class Maison {
         return typeConsommation.demand();
     }
     
+    public String toString() {
+    	return nom + ": le type de consommation de la maison " + typeConsommation.name() + " et elle consomme " + typeConsommation.demand() + "kW";
+    }
+    
     public boolean equals(Object o) {
         if (this == o) { 
         	return true;

@@ -42,6 +42,15 @@ public class ReseauElectrique {
     }
 
     public void ajouterConnexion(Maison maison, Generateur generateur) {
+    	
+        if (maison == null || generateur == null) {
+            throw new IllegalArgumentException("maison/generateur ne peut pas etre null");
+        }
+
+        if (!maisons.contains(maison) || !generateurs.contains(generateur)) {
+            throw new IllegalStateException("Tout d'abord, la maison/générateur doit être ajouté à la liste");
+        }
+        
         connexions.put(maison, generateur);
     }
 
@@ -89,6 +98,30 @@ public class ReseauElectrique {
         	}
         }
         return null;
+    }
+    
+    public List<Maison> trouverLesMaisonsDesGenerateurs(Generateur g) {
+    	List<Maison> m = new ArrayList<Maison>();
+    	for (Map.Entry<Maison, Generateur> connexion : connexions.entrySet()) {
+    		if (g.equals(connexion.getValue())) {
+    			m.add(connexion.getKey());
+    		}
+    	}
+    	return m;
+    }
+    
+    public void affichageGenerateurs() {
+    	System.out.println("\nGENERATEURS :");
+    	for (Generateur g: generateurs) {
+    		System.out.println(g.toString());
+    	}
+    }
+    
+    public void affichageMaisons() {
+    	System.out.println("\nMAISONS :");
+    	for (Maison m: maisons) {
+    		System.out.println(m.toString());
+    	}
     }
     
 }

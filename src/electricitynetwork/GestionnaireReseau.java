@@ -7,12 +7,22 @@ import java.util.Scanner;
 
 public class GestionnaireReseau {
 
-    Scanner sc;
-    ReseauElectrique re;
+    private Scanner sc;
+    private ReseauElectrique re;
+    public static final int LAMBDA = 10;
     
     public GestionnaireReseau(Scanner sc) {
     	this.sc = sc;
     	re = new ReseauElectrique();
+    }
+    
+    public GestionnaireReseau(Scanner sc, ReseauElectrique Re) {
+    	this.sc = sc;
+    	re = Re;
+    }
+    
+    public ReseauElectrique getReseauElectrique() {
+    	return re;
     }
 
     public void demarrer() {
@@ -29,6 +39,7 @@ public class GestionnaireReseau {
             }
         }
         affichageReseau();
+        menuEvaluation();
     }
     
     private int lireChoix() {
@@ -99,6 +110,7 @@ public class GestionnaireReseau {
 
     public void ajouterMaison() {
         System.out.println("Nom et Consommation (ex: M1 FORTE) : ");
+        System.out.println("Les types de consommation: BASSE, NORMAL, FORTE");
         String[] parts = sc.nextLine().split(" ");
 
         if(parts.length != 2) {
@@ -189,13 +201,161 @@ public class GestionnaireReseau {
             return false;
         }
     }
+    
+    public void afficherMenu2() {
+        System.out.println("\n=== Évaluation du réseau ===");
+        System.out.println("1) Calculer le coût du réseau électrique actuel");
+        System.out.println("2) Modifier une connexion");
+        System.out.println("3) Afficher le réseau");
+        System.out.println("4) Fin");
+        System.out.print("Votre choix : ");
+    }
+    
+    public void menuEvaluation() {
+        while (true) {
+        	afficherMenu2();
+            int reponse = lireChoix();
+            switch (reponse) {
+                case 1: 
+                	cout();
+                	break;
+                case 2: 
+                	if (modifierConnexion()) {
+                		System.out.println("Modification reussi, voici les connexions: ");
+                		affichageReseau();
+                		
+                	} else {
+                		System.out.println("La modification a echoue, les connexions n'ont pas ete modifies");
+                	}
+                	break;
+                case 3: 
+                	affichageReseau();
+                	break;
+                case 4: 
+                	fin();
+                	return;
+                default: 
+                	System.out.println("Choix invalide !");
+            }
+        }
+    }
+    
+    public double cout() {
+    	List<Generateur> generateurs = re.getGenerateurs();
+    	double cout = disps(generateurs) + (LAMBDA * surcharge(generateurs));
+    	System.out.println("le cout du reseau electrique actuel est " + cout);
+    	return cout;
+    }
+    
+    public double surcharge(List<Generateur> generateurs) {
+    	double somme = 0.0;
+    	for (Generateur g : generateurs) {
+    		somme += Math.max(0.0, (getSommeDesDemandesElectriques(g) - g.getCapaciteMaximale())/g.getCapaciteMaximale());
+    	}
+    	
+    	return somme;
+    }
+    
+    public double disps(List<Generateur> generateurs) {
+    	double tauxDUtilisation = calculerLeTauxDUtilisationGlobale(generateurs);
+    	double somme = 0.0;
+    	for (Generateur g : generateurs) {
+    		somme += Math.abs(calculerLeTauxDUtilisation(g) - tauxDUtilisation);
+    	}
+    	
+    	return somme;
+    }
+    
+    public double getSommeDesDemandesElectriques(Generateur g) {
+    	List<Maison> m = re.trouverLesMaisonsDesGenerateurs(g);
+    	double sommeDesDemandesElectriques = 0.0;
+    	for (int i = 0; i < m.size(); i++) {
+    		sommeDesDemandesElectriques += m.get(i).getConsommation();
+    	}
+    	
+    	return sommeDesDemandesElectriques;
+    }
+    
+    public double calculerLeTauxDUtilisation(Generateur g) {
+    	return getSommeDesDemandesElectriques(g) / g.getCapaciteMaximale();
+    }
+    
+    public double calculerLeTauxDUtilisationGlobale(List<Generateur> generateurs) {
+    	double tauxDUtilisation = 0.0;
+    			
+    	for (int i = 0; i < generateurs.size(); i++) {
+    		tauxDUtilisation += calculerLeTauxDUtilisation(generateurs.get(i));
+    	}
+    	
+    	return tauxDUtilisation / generateurs.size();
+    	
+    }
+    
+    public boolean modifierConnexion() {
+        System.out.print("Ancienne connexion (ex: M1 G1 ou G1 M1) : ");
+        String[] ancienneConnexion = sc.nextLine().trim().split("\\s+");
+        
+        if (ancienneConnexion.length != 2) { 
+        	System.out.println("Format invalide !");
+        	return false; 
+        }
 
+        Maison ancienneMaison = re.trouverMaison(ancienneConnexion[0].toUpperCase());
+        Generateur ancienneGenerateur = re.trouverGenerateur(ancienneConnexion[1].toUpperCase());
+        
+        if (ancienneMaison == null || ancienneGenerateur == null) {
+        	ancienneMaison = re.trouverMaison(ancienneConnexion[1].toUpperCase());
+        	ancienneGenerateur = re.trouverGenerateur(ancienneConnexion[0].toUpperCase());
+        }
+        
+        if (ancienneMaison == null || ancienneGenerateur == null) {
+        	System.out.println("Introuvable");
+        	return false;
+        }
+        
+        if (!ancienneGenerateur.equals(re.getConnexions().get(ancienneMaison))) {
+        	System.out.println("Cette connexion n'existe pas");
+        	return false;
+        }
+
+        System.out.print("Nouvelle connexion (ex: M1 G2 ou G2 M1) : ");
+        String[] nouvelleConnexion = sc.nextLine().trim().split("\\s+");
+        
+        if (nouvelleConnexion.length != 2) { System.out.println("Format invalide !");
+        return false; 
+        }
+
+        Maison nouvelleMaison = re.trouverMaison(nouvelleConnexion[0].toUpperCase());
+        Generateur nouvelleGenerateur = re.trouverGenerateur(nouvelleConnexion[1].toUpperCase());
+        
+        if (nouvelleMaison == null || nouvelleGenerateur == null) {
+        	nouvelleMaison = re.trouverMaison(nouvelleConnexion[1].toUpperCase());
+        	nouvelleGenerateur = re.trouverGenerateur(nouvelleConnexion[0].toUpperCase());
+        }
+        
+        if (nouvelleMaison == null || nouvelleGenerateur == null) { 
+        	System.out.println("Introuvable");
+        	return false;
+        }
+        
+        if (!nouvelleMaison.equals(ancienneMaison)) {
+        	System.out.println("La maison doit rester la même"); 
+        	return false;
+        }
+
+        re.ajouterConnexion(nouvelleMaison, nouvelleGenerateur);
+        
+        System.out.println("Connexion modifiée: " + nouvelleMaison.getNom() + " -> " + nouvelleGenerateur.getNom());
+        return true;
+    }
+    
     public void affichageReseau() {
+    	re.affichageMaisons();
+    	re.affichageGenerateurs();
         System.out.println("\nCONNEXIONS :");
         for (Map.Entry<Maison, Generateur> connexion : re.getConnexions().entrySet()) {
-            Maison maison = connexion.getKey();
-            Generateur generateur = connexion.getValue();
-            System.out.println("   " + maison.getNom() + " <-> " + generateur.getNom());
+            System.out.println("   " + connexion.getKey().getNom() + " <-> " + connexion.getValue().getNom());
         }   
     }
+
 }

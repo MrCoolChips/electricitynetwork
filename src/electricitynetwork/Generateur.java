@@ -22,6 +22,10 @@ public class Generateur {
         this.capaciteMaximale = capacite;
     }
     
+    public String toString() {
+    	return nom + ": la capacite maximale du générateur est de " + capaciteMaximale + "kW";
+    }
+    
     public boolean equals(Object o) {
         if (this == o) { 
         	return true;
