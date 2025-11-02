@@ -6,7 +6,6 @@
 *.iml
 
 # Build
-bin/
 target/
 out/
 
