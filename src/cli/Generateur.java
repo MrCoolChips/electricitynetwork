@@ -1,4 +1,4 @@
-package electricitynetwork;
+package cli;
 
 public class Generateur {
 

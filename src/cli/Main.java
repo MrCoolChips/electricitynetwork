@@ -1,4 +1,4 @@
-package electricitynetwork;
+package cli;
 
 import java.util.Scanner;
 

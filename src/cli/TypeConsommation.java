@@ -1,4 +1,4 @@
-package electricitynetwork;
+package cli;
 
 public enum TypeConsommation {
     BASSE(10), NORMAL(20), FORTE(40);
