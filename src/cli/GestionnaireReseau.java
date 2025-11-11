@@ -32,7 +32,7 @@ public class GestionnaireReseau {
         while (true) {
             afficherMenu();
             choix = lireChoix();
-            if (choix == 4) {
+            if (choix == 5) {
                 if (fin()) break;
             } else {
                 operation(choix);
@@ -56,7 +56,8 @@ public class GestionnaireReseau {
         System.out.println("1) Ajouter un générateur");
         System.out.println("2) Ajouter une maison");
         System.out.println("3) Ajouter une connexion entre une maison et un générateur existants");
-        System.out.println("4) Fin");
+        System.out.println("4) Supprimer une connexion");
+        System.out.println("5) Fin");
         System.out.println("\nVotre choix : ");
     }
 
@@ -70,6 +71,9 @@ public class GestionnaireReseau {
                 break;
             case 3:
                 ajouterConnexion();
+                break;
+            case 4:
+                supprimerConnexion();
                 break;
             default:
                 break;
@@ -173,6 +177,48 @@ public class GestionnaireReseau {
 
         re.ajouterConnexion(maison, generateur);
         System.out.println("Connexion créée entre " + maison.getNom() + " et " + generateur.getNom() + " !");
+    }
+
+    public void supprimerConnexion() {
+        System.out.println("Générateur et maison (ex: G1 M1 ou M1 G1) : ");
+        String[] parts = sc.nextLine().split(" ");
+
+        if(parts.length != 2) {
+            System.out.println("Format invalide !");
+            return;
+        }
+
+        String element1 = parts[0].toUpperCase();
+        String element2 = parts[1].toUpperCase();
+
+        Generateur generateur = re.trouverGenerateur(element1);
+        Maison maison = re.trouverMaison(element2);
+
+        if (generateur == null) {
+            generateur = re.trouverGenerateur(element2);
+            maison = re.trouverMaison(element1);
+        }
+
+        if (generateur == null || maison == null) {
+            System.out.println("Générateur ou maison introuvable !");
+            System.out.println("Vérifiez que vous avez bien créé les éléments avant.");
+            return;
+        }
+
+        if (!re.getConnexions().containsKey(maison)) {
+            System.out.println("Erreur : La maison " + maison.getNom() + " n'est pas connectée !");
+            return;
+        }
+
+        Generateur generateurConnecte = re.getConnexions().get(maison);
+        if (!generateur.equals(generateurConnecte)) {
+            System.out.println("Erreur : La connexion entre " + maison.getNom() + " et " + generateur.getNom() + " n'existe pas !");
+            System.out.println("La maison " + maison.getNom() + " est connectée à " + generateurConnecte.getNom());
+            return;
+        }
+
+        re.getConnexions().remove(maison);
+        System.out.println("Connexion supprimée entre " + maison.getNom() + " et " + generateur.getNom() + " !");
     }
 
     public boolean fin() {
