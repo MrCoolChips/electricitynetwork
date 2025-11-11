@@ -112,15 +112,17 @@ public class ReseauElectrique {
     
     public void affichageGenerateurs() {
     	System.out.println("\nGENERATEURS :");
+    	System.out.println("─────────────────────────────────");
     	for (Generateur g: generateurs) {
-    		System.out.println(g.toString());
+    		System.out.println("  - " + g.toString());
     	}
     }
     
     public void affichageMaisons() {
     	System.out.println("\nMAISONS :");
+    	System.out.println("─────────────────────────────────");
     	for (Maison m: maisons) {
-    		System.out.println(m.toString());
+    		System.out.println("  - " + m.toString());
     	}
     }
     

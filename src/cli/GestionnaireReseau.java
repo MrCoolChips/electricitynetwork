@@ -27,7 +27,9 @@ public class GestionnaireReseau {
 
     public void demarrer() {
         int choix;
-        System.out.println("=== Gestionnaire de Réseau Électrique ===");
+        System.out.println("\n╔════════════════════════════════════════════════╗");
+        System.out.println("║     GESTIONNAIRE DE RESEAU ELECTRIQUE          ║");
+        System.out.println("╚════════════════════════════════════════════════╝\n");
 
         while (true) {
             afficherMenu();
@@ -38,7 +40,6 @@ public class GestionnaireReseau {
                 operation(choix);
             }
         }
-        affichageReseau();
         menuEvaluation();
     }
     
@@ -53,12 +54,16 @@ public class GestionnaireReseau {
     }
 
     public void afficherMenu() {
-        System.out.println("1) Ajouter un générateur");
-        System.out.println("2) Ajouter une maison");
-        System.out.println("3) Ajouter une connexion entre une maison et un générateur existants");
-        System.out.println("4) Supprimer une connexion");
-        System.out.println("5) Fin");
-        System.out.println("\nVotre choix : ");
+        System.out.println("┌────────────────────────────────────────────────┐");
+        System.out.println("│              MENU PRINCIPAL                    │");
+        System.out.println("├────────────────────────────────────────────────┤");
+        System.out.println("│  1 | Ajouter un generateur                     │");
+        System.out.println("│  2 | Ajouter une maison                        │");
+        System.out.println("│  3 | Ajouter une connexion                     │");
+        System.out.println("│  4 | Supprimer une connexion                   │");
+        System.out.println("│  5 | Fin                                       │");
+        System.out.println("└────────────────────────────────────────────────┘");
+        System.out.print("\n> Votre choix : ");
     }
 
     public void operation(int choix) {
@@ -81,11 +86,12 @@ public class GestionnaireReseau {
     }
 
     public void ajouterGenerateur() {
-        System.out.println("Nom et capacité (ex: G1 60) : ");
+        System.out.println("\n--- AJOUTER UN GENERATEUR ---");
+        System.out.print("> Nom et capacite (ex: G1 60) : ");
         String[] parts = sc.nextLine().split(" ");
 
         if(parts.length != 2) {
-            System.out.println("Format invalide !");
+            System.out.println("[ERREUR] Format invalide !\n");
             return;
         }
 
@@ -95,7 +101,7 @@ public class GestionnaireReseau {
         try {
             capacite = Double.parseDouble(parts[1]);
         } catch(java.lang.NumberFormatException e) {
-            System.out.println("Type invalide !");
+            System.out.println("[ERREUR] Type invalide !\n");
             return;
         }
 
@@ -103,22 +109,23 @@ public class GestionnaireReseau {
 
         if(existantGenerateur != null) {
             existantGenerateur.setCapaciteMaximale(capacite);
-            System.out.println("Générateur " + nom + " mis à jour !");
+            System.out.println("[OK] Generateur " + nom + " mis a jour !\n");
         } else {
             Generateur nouvGenerateur = new Generateur(nom, capacite);
             re.ajouterGenerateur(nouvGenerateur);
-            System.out.println("Générateur " + nom + " créé !");
+            System.out.println("[OK] Generateur " + nom + " cree !\n");
         }
 
     }
 
     public void ajouterMaison() {
-        System.out.println("Nom et Consommation (ex: M1 FORTE) : ");
-        System.out.println("Les types de consommation: BASSE, NORMAL, FORTE");
+        System.out.println("\n--- AJOUTER UNE MAISON ---");
+        System.out.println("Types de consommation: BASSE, NORMAL, FORTE");
+        System.out.print("> Nom et Consommation (ex: M1 FORTE) : ");
         String[] parts = sc.nextLine().split(" ");
 
         if(parts.length != 2) {
-            System.out.println("Format invalide !");
+            System.out.println("[ERREUR] Format invalide !\n");
             return;
         }
 
@@ -128,7 +135,7 @@ public class GestionnaireReseau {
         try {
             type = TypeConsommation.valueOf(consommation);
         } catch (IllegalArgumentException e) {
-            System.out.println("Type invalide ! Utilisez: BASSE, NORMAL, FORTE");
+            System.out.println("[ERREUR] Type invalide ! Utilisez: BASSE, NORMAL, FORTE\n");
             return;
         }
 
@@ -136,20 +143,21 @@ public class GestionnaireReseau {
 
         if(existantMaison != null) {
             existantMaison.setTypeConsommation(type);
-            System.out.println("Maison " + nom + " mise à jour !");
+            System.out.println("[OK] Maison " + nom + " mise a jour !\n");
         } else {
             Maison nouvelleMaison = new Maison(nom, type);
             re.ajouterMaison(nouvelleMaison);
-            System.out.println("Maison " + nom + " créée !");
+            System.out.println("[OK] Maison " + nom + " creee !\n");
         }
     }
 
     public void ajouterConnexion() {
-        System.out.println("Générateur et maison (ex: G1 M1 ou M1 G1) : ");
+        System.out.println("\n--- AJOUTER UNE CONNEXION ---");
+        System.out.print("> Generateur et maison (ex: G1 M1 ou M1 G1) : ");
         String[] parts = sc.nextLine().split(" ");
 
         if(parts.length != 2) {
-            System.out.println("Format invalide !");
+            System.out.println("[ERREUR] Format invalide !\n");
             return;
         }
 
@@ -165,26 +173,27 @@ public class GestionnaireReseau {
         }
 
         if (generateur == null || maison == null) {
-            System.out.println("Générateur ou maison introuvable !");
-            System.out.println("Vérifiez que vous avez bien créé les éléments avant.");
+            System.out.println("[ERREUR] Generateur ou maison introuvable !");
+            System.out.println("Verifiez que vous avez bien cree les elements avant.\n");
             return;
         }
 
         if (re.getConnexions().containsKey(maison)) {
-            System.out.println("Erreur : La maison " + maison.getNom() + " est déjà connectée !");
+            System.out.println("[ERREUR] La maison " + maison.getNom() + " est deja connectee !\n");
             return;
         }
 
         re.ajouterConnexion(maison, generateur);
-        System.out.println("Connexion créée entre " + maison.getNom() + " et " + generateur.getNom() + " !");
+        System.out.println("[OK] Connexion creee entre " + maison.getNom() + " <-> " + generateur.getNom() + " !\n");
     }
 
     public void supprimerConnexion() {
-        System.out.println("Générateur et maison (ex: G1 M1 ou M1 G1) : ");
+        System.out.println("\n--- SUPPRIMER UNE CONNEXION ---");
+        System.out.print("> Generateur et maison (ex: G1 M1 ou M1 G1) : ");
         String[] parts = sc.nextLine().split(" ");
 
         if(parts.length != 2) {
-            System.out.println("Format invalide !");
+            System.out.println("[ERREUR] Format invalide !\n");
             return;
         }
 
@@ -200,30 +209,32 @@ public class GestionnaireReseau {
         }
 
         if (generateur == null || maison == null) {
-            System.out.println("Générateur ou maison introuvable !");
-            System.out.println("Vérifiez que vous avez bien créé les éléments avant.");
+            System.out.println("[ERREUR] Generateur ou maison introuvable !");
+            System.out.println("Verifiez que vous avez bien cree les elements avant.\n");
             return;
         }
 
         if (!re.getConnexions().containsKey(maison)) {
-            System.out.println("Erreur : La maison " + maison.getNom() + " n'est pas connectée !");
+            System.out.println("[ERREUR] La maison " + maison.getNom() + " n'est pas connectee !\n");
             return;
         }
 
         Generateur generateurConnecte = re.getConnexions().get(maison);
         if (!generateur.equals(generateurConnecte)) {
-            System.out.println("Erreur : La connexion entre " + maison.getNom() + " et " + generateur.getNom() + " n'existe pas !");
-            System.out.println("La maison " + maison.getNom() + " est connectée à " + generateurConnecte.getNom());
+            System.out.println("[ERREUR] La connexion entre " + maison.getNom() + " et " + generateur.getNom() + " n'existe pas !");
+            System.out.println("La maison " + maison.getNom() + " est connectee a " + generateurConnecte.getNom() + "\n");
             return;
         }
 
         re.getConnexions().remove(maison);
-        System.out.println("Connexion supprimée entre " + maison.getNom() + " et " + generateur.getNom() + " !");
+        System.out.println("[OK] Connexion supprimee entre " + maison.getNom() + " et " + generateur.getNom() + " !\n");
     }
 
     public boolean fin() {
 
-        System.out.println("\n=== Vérification du réseau ===");
+        System.out.println("\n┌────────────────────────────────────────────────┐");
+        System.out.println("│         VERIFICATION DU RESEAU                 │");
+        System.out.println("└────────────────────────────────────────────────┘");
     
         List<String> problemes = new ArrayList<>();
     
@@ -235,26 +246,28 @@ public class GestionnaireReseau {
         }
         
         if (problemes.isEmpty()) {
-            System.out.println("Réseau valide ! Chaque maison est connectée à exactement un générateur.");
-            System.out.println("Au revoir !");
+            System.out.println("[OK] Reseau valide ! Chaque maison est connectee a exactement un generateur.");
             return true;
         } else {
-            System.out.println("Problèmes détectés :");
+            System.out.println("[ATTENTION] Problemes detectes :");
             for (String probleme : problemes) {
-                System.out.println("   - " + probleme);
+                System.out.println("  - " + probleme);
             }
-            System.out.println("Corrigez ces problèmes avant de terminer !");
+            System.out.println("\nCorrigez ces problemes avant de terminer !\n");
             return false;
         }
     }
     
     public void afficherMenu2() {
-        System.out.println("\n=== Évaluation du réseau ===");
-        System.out.println("1) Calculer le coût du réseau électrique actuel");
-        System.out.println("2) Modifier une connexion");
-        System.out.println("3) Afficher le réseau");
-        System.out.println("4) Fin");
-        System.out.print("Votre choix : ");
+        System.out.println("\n┌────────────────────────────────────────────────┐");
+        System.out.println("│           EVALUATION DU RESEAU                 │");
+        System.out.println("├────────────────────────────────────────────────┤");
+        System.out.println("│  1 | Calculer le cout du reseau                │");
+        System.out.println("│  2 | Modifier une connexion                    │");
+        System.out.println("│  3 | Afficher le reseau                        │");
+        System.out.println("│  4 | Fin                                       │");
+        System.out.println("└────────────────────────────────────────────────┘");
+        System.out.print("\n> Votre choix : ");
     }
     
     public void menuEvaluation() {
@@ -267,11 +280,11 @@ public class GestionnaireReseau {
                 	break;
                 case 2: 
                 	if (modifierConnexion()) {
-                		System.out.println("Modification reussi, voici les connexions: ");
+                		System.out.println("[OK] Modification reussie, voici les connexions :\n");
                 		affichageReseau();
                 		
                 	} else {
-                		System.out.println("La modification a echoue, les connexions n'ont pas ete modifies");
+                		System.out.println("[ERREUR] La modification a echoue, les connexions n'ont pas ete modifiees\n");
                 	}
                 	break;
                 case 3: 
@@ -281,7 +294,7 @@ public class GestionnaireReseau {
                 	fin();
                 	return;
                 default: 
-                	System.out.println("Choix invalide !");
+                	System.out.println("[ERREUR] Choix invalide !\n");
             }
         }
     }
@@ -289,7 +302,7 @@ public class GestionnaireReseau {
     public double cout() {
     	List<Generateur> generateurs = re.getGenerateurs();
     	double cout = disps(generateurs) + (LAMBDA * surcharge(generateurs));
-    	System.out.println("le cout du reseau electrique actuel est " + cout);
+    	System.out.println("\nLe cout du reseau electrique actuel est : " + String.format("%.2f", cout) + "\n");
     	return cout;
     }
     
@@ -338,11 +351,12 @@ public class GestionnaireReseau {
     }
     
     public boolean modifierConnexion() {
-        System.out.print("Ancienne connexion (ex: M1 G1 ou G1 M1) : ");
+        System.out.println("\n--- MODIFIER UNE CONNEXION ---");
+        System.out.print("> Ancienne connexion (ex: M1 G1 ou G1 M1) : ");
         String[] ancienneConnexion = sc.nextLine().trim().split("\\s+");
         
         if (ancienneConnexion.length != 2) { 
-        	System.out.println("Format invalide !");
+        	System.out.println("[ERREUR] Format invalide !\n");
         	return false; 
         }
 
@@ -355,20 +369,21 @@ public class GestionnaireReseau {
         }
         
         if (ancienneMaison == null || ancienneGenerateur == null) {
-        	System.out.println("Introuvable");
+        	System.out.println("[ERREUR] Introuvable\n");
         	return false;
         }
         
         if (!ancienneGenerateur.equals(re.getConnexions().get(ancienneMaison))) {
-        	System.out.println("Cette connexion n'existe pas");
+        	System.out.println("[ERREUR] Cette connexion n'existe pas\n");
         	return false;
         }
 
-        System.out.print("Nouvelle connexion (ex: M1 G2 ou G2 M1) : ");
+        System.out.print("> Nouvelle connexion (ex: M1 G2 ou G2 M1) : ");
         String[] nouvelleConnexion = sc.nextLine().trim().split("\\s+");
         
-        if (nouvelleConnexion.length != 2) { System.out.println("Format invalide !");
-        return false; 
+        if (nouvelleConnexion.length != 2) { 
+        	System.out.println("[ERREUR] Format invalide !\n");
+        	return false; 
         }
 
         Maison nouvelleMaison = re.trouverMaison(nouvelleConnexion[0].toUpperCase());
@@ -380,28 +395,33 @@ public class GestionnaireReseau {
         }
         
         if (nouvelleMaison == null || nouvelleGenerateur == null) { 
-        	System.out.println("Introuvable");
+        	System.out.println("[ERREUR] Introuvable\n");
         	return false;
         }
         
         if (!nouvelleMaison.equals(ancienneMaison)) {
-        	System.out.println("La maison doit rester la même"); 
+        	System.out.println("[ERREUR] La maison doit rester la meme\n"); 
         	return false;
         }
 
         re.ajouterConnexion(nouvelleMaison, nouvelleGenerateur);
         
-        System.out.println("Connexion modifiée: " + nouvelleMaison.getNom() + " -> " + nouvelleGenerateur.getNom());
+        System.out.println("[OK] Connexion modifiee : " + nouvelleMaison.getNom() + " <-> " + nouvelleGenerateur.getNom() + "\n");
         return true;
     }
     
     public void affichageReseau() {
+    	System.out.println("\n╔════════════════════════════════════════════════╗");
+        System.out.println("║              ETAT DU RESEAU                    ║");
+        System.out.println("╚════════════════════════════════════════════════╝");
     	re.affichageMaisons();
     	re.affichageGenerateurs();
         System.out.println("\nCONNEXIONS :");
+        System.out.println("─────────────────────────────────");
         for (Map.Entry<Maison, Generateur> connexion : re.getConnexions().entrySet()) {
             System.out.println("   " + connexion.getKey().getNom() + " <-> " + connexion.getValue().getNom());
-        }   
+        }
+        System.out.println();
     }
 
 }
