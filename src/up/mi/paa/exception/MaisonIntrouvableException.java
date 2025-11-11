@@ -1,4 +1,4 @@
-package cli;
+package up.mi.paa.exception;
 
 /**
  * Exception lancee lorsqu'une maison n'est pas trouvee dans le reseau.

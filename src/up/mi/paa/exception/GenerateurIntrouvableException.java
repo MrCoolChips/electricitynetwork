@@ -1,4 +1,4 @@
-package cli;
+package up.mi.paa.exception;
 
 /**
  * Exception lancee lorsqu'un generateur n'est pas trouve dans le reseau.

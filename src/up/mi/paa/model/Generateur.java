@@ -1,4 +1,4 @@
-package cli;
+package up.mi.paa.model;
 
 /**
  * Represente un generateur electrique dans le reseau.

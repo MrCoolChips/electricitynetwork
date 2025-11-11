@@ -1,4 +1,4 @@
-package cli;
+package up.mi.paa.model;
 
 /**
  * Enumeration des types de consommation electrique possibles pour une maison.

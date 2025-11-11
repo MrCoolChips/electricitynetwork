@@ -1,4 +1,4 @@
-package cli;
+package up.mi.paa.exception;
 
 /**
  * Exception lancee lorsqu'une connexion n'existe pas dans le reseau.

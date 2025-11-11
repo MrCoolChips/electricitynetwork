@@ -1,4 +1,4 @@
-package cli;
+package up.mi.paa.exception;
 
 /**
  * Exception lancee lorsqu'un format d'entree est invalide.

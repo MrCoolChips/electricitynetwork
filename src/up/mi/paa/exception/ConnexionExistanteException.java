@@ -1,4 +1,4 @@
-package cli;
+package up.mi.paa.exception;
 
 /**
  * Exception lancee lorsqu'une connexion existe deja pour une maison.

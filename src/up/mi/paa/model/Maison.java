@@ -1,4 +1,4 @@
-package cli;
+package up.mi.paa.model;
 
 /**
  * Represente une maison consommatrice d'electricite dans le reseau.

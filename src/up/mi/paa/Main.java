@@ -1,5 +1,6 @@
-package cli;
+package up.mi.paa;
 
+import up.mi.paa.ui.MenuCLI;
 import java.util.Scanner;
 
 /**
@@ -14,8 +15,8 @@ public class Main {
      */
     public static void main(String[] args) {
     	Scanner sc = new Scanner(System.in);
-        GestionnaireReseau gestionnaireReseau = new GestionnaireReseau(sc);
-        gestionnaireReseau.demarrer();
+        MenuCLI menu = new MenuCLI(sc);
+        menu.demarrer();
         sc.close();
     }
     
