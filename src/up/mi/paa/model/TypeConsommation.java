@@ -30,7 +30,7 @@ public enum TypeConsommation {
      * 
      * @return La demande en kW
      */
-    public int demand() {
+    public int demande() {
     	return kw; 
     }
 }

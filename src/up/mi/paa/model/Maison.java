@@ -53,7 +53,7 @@ public class Maison {
      * @return La consommation en kW selon le type de consommation
      */
     public int getConsommation() {
-        return typeConsommation.demand();
+        return typeConsommation.demande();
     }
     
     /**
@@ -62,7 +62,7 @@ public class Maison {
      * @return Une chaine decrivant la maison et sa consommation
      */
     public String toString() {
-    	return nom + ": le type de consommation de la maison " + typeConsommation.name() + " et elle consomme " + typeConsommation.demand() + "kW";
+    	return nom + ": le type de consommation de la maison " + typeConsommation.name() + " et elle consomme " + typeConsommation.demande() + "kW";
     }
     
     /**
