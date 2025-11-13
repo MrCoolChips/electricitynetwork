@@ -242,6 +242,21 @@ La documentation complète du code est disponible via Javadoc :
 javadoc -d docs -encoding UTF-8 -charset UTF-8 -sourcepath src -subpackages up.mi.paa
 ```
 
+## Création d'un JAR
+
+```bash
+# 1. Compiler
+javac -encoding UTF-8 -d bin src/up/mi/paa/*.java src/up/mi/paa/model/*.java src/up/mi/paa/service/*.java src/up/mi/paa/ui/*.java src/up/mi/paa/exception/*.java
+
+# 2. Créer le JAR
+cd bin
+jar cfm ReseauElectrique.jar MANIFEST.MF up/mi/paa/*.class up/mi/paa/model/*.class up/mi/paa/service/*.class up/mi/paa/ui/*.class up/mi/paa/exception/*.class
+cd ..
+
+# 3. Lancer
+java -jar bin/ReseauElectrique.jar
+```
+
 ## Auteurs
 
 - Ali GOUARAB
