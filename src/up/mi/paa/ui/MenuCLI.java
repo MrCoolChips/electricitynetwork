@@ -12,6 +12,13 @@ import java.util.Scanner;
  */
 public class MenuCLI {
 
+    // Codes couleur
+    private static final String RESET = "\033[0m";
+    private static final String VERT = "\033[32m";
+    private static final String ROUGE = "\033[31m";
+    private static final String JAUNE = "\033[33m";
+    private static final String CYAN = "\033[36m";
+
     private Scanner sc;
     private GestionnaireReseau gestionnaire;
     
@@ -62,7 +69,7 @@ public class MenuCLI {
     private int lireChoix() {
         while (!sc.hasNextInt()) { 
             sc.nextLine(); 
-            System.out.println("\n[ERREUR] Entree invalide ! Veuillez saisir un nombre.\n");
+            System.out.println("\n" + ROUGE + "[ERREUR]" + RESET + " Entree invalide ! Veuillez saisir un nombre.\n");
             System.out.print("> Votre choix : ");
         }
         int choix = sc.nextInt(); 
@@ -106,7 +113,7 @@ public class MenuCLI {
                 supprimerConnexion();
                 break;
             default:
-                System.out.println("\n[ERREUR] Choix invalide ! Veuillez choisir entre 1 et 5.\n");
+                System.out.println("\n" + ROUGE + "[ERREUR]" + RESET + " Choix invalide ! Veuillez choisir entre 1 et 5.\n");
                 break;
         }
     }
@@ -119,17 +126,17 @@ public class MenuCLI {
         System.out.print("> Nom et capacite (ex: G1 60) : ");
         
         try {
-            String[] parts = sc.nextLine().split(" ");
+            String[] parts = sc.nextLine().trim().split("\\s+");
             
             if(parts.length != 2) {
                 throw new FormatInvalideException("Le format doit etre: NOM CAPACITE");
             }
 
-            String nom = parts[0].toUpperCase();
+            String nom = parts[0].trim().toUpperCase();
             double capacite;
             
             try {
-                capacite = Double.parseDouble(parts[1]);
+                capacite = Double.parseDouble(parts[1].trim());
                 if(capacite <= 0) {
                     throw new NumberFormatException("La capacite doit etre positive");
                 }
@@ -140,13 +147,13 @@ public class MenuCLI {
             boolean existe = gestionnaire.ajouterOuModifierGenerateur(nom, capacite);
             
             if(existe) {
-                System.out.println("[OK] Generateur " + nom + " mis a jour !\n");
+                System.out.println(VERT + "[OK]" + RESET + " Generateur " + nom + " mis a jour !\n");
             } else {
-                System.out.println("[OK] Generateur " + nom + " cree !\n");
+                System.out.println(VERT + "[OK]" + RESET + " Generateur " + nom + " cree !\n");
             }
             
         } catch(FormatInvalideException e) {
-            System.out.println("[ERREUR] " + e.getMessage() + "\n");
+            System.out.println(ROUGE + "[ERREUR]" + RESET + " " + e.getMessage() + "\n");
         }
     }
 
@@ -159,14 +166,14 @@ public class MenuCLI {
         System.out.print("> Nom et Consommation (ex: M1 FORTE) : ");
         
         try {
-            String[] parts = sc.nextLine().split(" ");
+            String[] parts = sc.nextLine().trim().split("\\s+");
 
             if(parts.length != 2) {
                 throw new FormatInvalideException("Le format doit etre: NOM TYPE_CONSOMMATION");
             }
 
-            String nom = parts[0].toUpperCase();
-            String consommation = parts[1].toUpperCase();
+            String nom = parts[0].trim().toUpperCase();
+            String consommation = parts[1].trim().toUpperCase();
             TypeConsommation type;
             
             try {
@@ -178,13 +185,13 @@ public class MenuCLI {
             boolean existe = gestionnaire.ajouterOuModifierMaison(nom, type);
             
             if(existe) {
-                System.out.println("[OK] Maison " + nom + " mise a jour !\n");
+                System.out.println(VERT + "[OK]" + RESET + " Maison " + nom + " mise a jour !\n");
             } else {
-                System.out.println("[OK] Maison " + nom + " creee !\n");
+                System.out.println(VERT + "[OK]" + RESET + " Maison " + nom + " creee !\n");
             }
             
         } catch(FormatInvalideException e) {
-            System.out.println("[ERREUR] " + e.getMessage() + "\n");
+            System.out.println(ROUGE + "[ERREUR]" + RESET + " " + e.getMessage() + "\n");
         }
     }
 
@@ -196,21 +203,21 @@ public class MenuCLI {
         System.out.print("> Generateur et maison (ex: G1 M1 ou M1 G1) : ");
         
         try {
-            String[] parts = sc.nextLine().split(" ");
+            String[] parts = sc.nextLine().trim().split("\\s+");
 
             if(parts.length != 2) {
                 throw new FormatInvalideException("Le format doit etre: ELEMENT1 ELEMENT2");
             }
 
-            String element1 = parts[0].toUpperCase();
-            String element2 = parts[1].toUpperCase();
+            String element1 = parts[0].trim().toUpperCase();
+            String element2 = parts[1].trim().toUpperCase();
 
             gestionnaire.creerConnexion(element1, element2);
-            System.out.println("[OK] Connexion creee !\n");
+            System.out.println(VERT + "[OK]" + RESET + " Connexion creee !\n");
             
         } catch(FormatInvalideException | GenerateurIntrouvableException | 
                 MaisonIntrouvableException | ConnexionExistanteException e) {
-            System.out.println("[ERREUR] " + e.getMessage() + "\n");
+            System.out.println(ROUGE + "[ERREUR]" + RESET + " " + e.getMessage() + "\n");
         }
     }
 
@@ -222,21 +229,21 @@ public class MenuCLI {
         System.out.print("> Generateur et maison (ex: G1 M1 ou M1 G1) : ");
         
         try {
-            String[] parts = sc.nextLine().split(" ");
+            String[] parts = sc.nextLine().trim().split("\\s+");
 
             if(parts.length != 2) {
                 throw new FormatInvalideException("Le format doit etre: ELEMENT1 ELEMENT2");
             }
 
-            String element1 = parts[0].toUpperCase();
-            String element2 = parts[1].toUpperCase();
+            String element1 = parts[0].trim().toUpperCase();
+            String element2 = parts[1].trim().toUpperCase();
 
             gestionnaire.supprimerConnexion(element1, element2);
-            System.out.println("[OK] Connexion supprimee !\n");
+            System.out.println(VERT + "[OK]" + RESET + " Connexion supprimee !\n");
             
         } catch(FormatInvalideException | GenerateurIntrouvableException | 
                 MaisonIntrouvableException | ConnexionIntrouvableException e) {
-            System.out.println("[ERREUR] " + e.getMessage() + "\n");
+            System.out.println(ROUGE + "[ERREUR]" + RESET + " " + e.getMessage() + "\n");
         }
     }
 
@@ -253,10 +260,10 @@ public class MenuCLI {
         String[] problemes = gestionnaire.verifierValiditeReseau();
         
         if (problemes.length == 0) {
-            System.out.println("[OK] Reseau valide ! Chaque maison est connectee a exactement un generateur.");
+            System.out.println(VERT + "[OK]" + RESET + " Reseau valide ! Chaque maison est connectee a exactement un generateur.");
             return true;
         } else {
-            System.out.println("[ATTENTION] Problemes detectes :");
+            System.out.println(JAUNE + "[ATTENTION]" + RESET + " Problemes detectes :");
             for (String probleme : problemes) {
                 System.out.println("  - " + probleme);
             }
@@ -301,7 +308,7 @@ public class MenuCLI {
                     verifierReseau();
                     return;
                 default: 
-                    System.out.println("\n[ERREUR] Choix invalide ! Veuillez choisir entre 1 et 4.\n");
+                    System.out.println("\n" + ROUGE + "[ERREUR]" + RESET + " Choix invalide ! Veuillez choisir entre 1 et 4.\n");
             }
         }
     }
@@ -312,9 +319,9 @@ public class MenuCLI {
     private void calculerCout() {
         try {
             double cout = gestionnaire.calculerCout();
-            System.out.println("\nLe cout du reseau electrique actuel est : " + String.format("%.2f", cout) + "\n");
+            System.out.println("\n" + CYAN + "Le cout du reseau electrique actuel est : " + String.format("%.2f", cout) + RESET + "\n");
         } catch(ArithmeticException e) {
-            System.out.println("[ERREUR] Impossible de calculer le cout : " + e.getMessage() + "\n");
+            System.out.println(ROUGE + "[ERREUR]" + RESET + " Impossible de calculer le cout : " + e.getMessage() + "\n");
         }
     }
     
@@ -339,18 +346,18 @@ public class MenuCLI {
             }
 
             gestionnaire.modifierConnexion(
-                ancienneConnexion[0].toUpperCase(), 
-                ancienneConnexion[1].toUpperCase(),
-                nouvelleConnexion[0].toUpperCase(), 
-                nouvelleConnexion[1].toUpperCase()
+                ancienneConnexion[0].trim().toUpperCase(), 
+                ancienneConnexion[1].trim().toUpperCase(),
+                nouvelleConnexion[0].trim().toUpperCase(), 
+                nouvelleConnexion[1].trim().toUpperCase()
             );
             
-            System.out.println("[OK] Modification reussie, voici les connexions :\n");
+            System.out.println(VERT + "[OK]" + RESET + " Modification reussie, voici les connexions :\n");
             afficherReseau();
             
         } catch(FormatInvalideException | GenerateurIntrouvableException | 
                 MaisonIntrouvableException | ConnexionIntrouvableException e) {
-            System.out.println("[ERREUR] " + e.getMessage() + "\n");
+            System.out.println(ROUGE + "[ERREUR]" + RESET + " " + e.getMessage() + "\n");
         }
     }
     

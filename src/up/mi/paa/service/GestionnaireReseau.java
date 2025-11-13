@@ -299,8 +299,11 @@ public class GestionnaireReseau {
         Maison ancienneMaison = re.trouverMaison(ancienElement1);
         Generateur ancienGenerateur = re.trouverGenerateur(ancienElement2);
         
-        if (ancienneMaison == null || ancienGenerateur == null) {
+        if (ancienneMaison == null) {
             ancienneMaison = re.trouverMaison(ancienElement2);
+        }
+        
+        if (ancienGenerateur == null) {
             ancienGenerateur = re.trouverGenerateur(ancienElement1);
         }
         
@@ -320,8 +323,11 @@ public class GestionnaireReseau {
         Maison nouvelleMaison = re.trouverMaison(nouvelElement1);
         Generateur nouvelGenerateur = re.trouverGenerateur(nouvelElement2);
         
-        if (nouvelleMaison == null || nouvelGenerateur == null) {
+        if (nouvelleMaison == null) {
             nouvelleMaison = re.trouverMaison(nouvelElement2);
+        }
+        
+        if (nouvelGenerateur == null) {
             nouvelGenerateur = re.trouverGenerateur(nouvelElement1);
         }
         
