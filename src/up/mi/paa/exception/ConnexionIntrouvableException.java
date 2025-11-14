@@ -5,7 +5,9 @@ package up.mi.paa.exception;
  */
 public class ConnexionIntrouvableException extends Exception {
     
-    /**
+    private static final long serialVersionUID = -3466750384489972582L;
+
+	/**
      * Constructeur avec message d'erreur.
      * 
      * @param message Le message d'erreur
