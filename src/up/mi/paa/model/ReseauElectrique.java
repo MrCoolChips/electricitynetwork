@@ -102,17 +102,12 @@ public class ReseauElectrique {
      * @return Le generateur trouve ou null s'il n'existe pas
      */
     public Generateur trouverGenerateur(Generateur g1) {
-    	Generateur g2 = null;
-    	boolean trouve = false;
-    	
-    	for (int i = 0; i < generateurs.size() && !trouve; i++) {
-    		if (generateurs.get(i).equals(g1)) {
-    			g2 = generateurs.get(i);
-    			trouve = true;
-    		}
-    	}
-
-        return g2;
+        for (Generateur g : generateurs) {
+            if (g.equals(g1)) {
+                return g;
+            }
+        }
+        return null;
     }
 
     /**
@@ -122,17 +117,12 @@ public class ReseauElectrique {
      * @return La maison trouvee ou null si elle n'existe pas
      */
     public Maison trouverMaison(Maison m1) {
-    	Maison m2 = null;
-    	boolean trouve = false;
-    	
-    	for (int i = 0; i < maisons.size() && !trouve; i++) {
-    		if (maisons.get(i).equals(m1)) {
-    			m2 = maisons.get(i);
-    			trouve = true;
-    		}
-    	}
-
-        return m2;
+        for (Maison m : maisons) {
+            if (m.equals(m1)) {
+                return m;
+            }
+        }
+        return null;
     }
     
     /**

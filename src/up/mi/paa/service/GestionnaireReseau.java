@@ -319,7 +319,6 @@ public class GestionnaireReseau {
             throw new ConnexionIntrouvableException("Cette connexion n'existe pas");
         }
 
-        // Nouvelle connexion
         Maison nouvelleMaison = re.trouverMaison(nouvelElement1);
         Generateur nouvelGenerateur = re.trouverGenerateur(nouvelElement2);
         

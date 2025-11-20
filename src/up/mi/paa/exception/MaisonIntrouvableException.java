@@ -5,8 +5,6 @@ package up.mi.paa.exception;
  */
 public class MaisonIntrouvableException extends Exception {
     
-    private static final long serialVersionUID = 2188974259994949472L;
-
 	/**
      * Constructeur avec message d'erreur.
      * 
