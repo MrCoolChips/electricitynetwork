@@ -171,10 +171,35 @@ public class GestionnaireReseau {
     public String[] verifierValiditeReseau() {
         List<String> problemes = new ArrayList<>();
     
+        // Vérifier qu'il y a au moins une maison et un générateur
+        if (re.getMaisons().isEmpty()) {
+            problemes.add("Le reseau doit contenir au moins une maison");
+        }
+        
+        if (re.getGenerateurs().isEmpty()) {
+            problemes.add("Le reseau doit contenir au moins un generateur");
+        }
+        
+        // Vérifier que toutes les maisons sont connectées
         for (Maison maison : re.getMaisons()) {
             if (!re.getConnexions().containsKey(maison)) {
                 problemes.add(maison.getNom() + " (aucune connexion)");
             }
+        }
+        
+        double demandeTotale = 0.0;
+        double capaciteTotale = 0.0;
+        
+        for (Maison maison : re.getMaisons()) {
+            demandeTotale += maison.getConsommation();
+        }
+        
+        for (Generateur generateur : re.getGenerateurs()) {
+            capaciteTotale += generateur.getCapaciteMaximale();
+        }
+        
+        if (demandeTotale > capaciteTotale) {
+            problemes.add("Demande totale (" + String.format("%.2f", demandeTotale) + " kW) superieure a la capacite totale (" + String.format("%.2f", capaciteTotale) + " kW)");
         }
         
         return problemes.toArray(new String[0]);
