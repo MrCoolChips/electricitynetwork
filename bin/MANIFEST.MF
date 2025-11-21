@@ -1,1 +1,0 @@
-Main-Class: up.mi.paa.Main

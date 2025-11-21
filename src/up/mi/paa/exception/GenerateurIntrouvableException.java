@@ -5,6 +5,8 @@ package up.mi.paa.exception;
  */
 public class GenerateurIntrouvableException extends Exception {
     
+	private static final long serialVersionUID = -6417884171757536826L;
+
 	/**
      * Constructeur avec message d'erreur.
      * 

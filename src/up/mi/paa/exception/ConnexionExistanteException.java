@@ -5,6 +5,8 @@ package up.mi.paa.exception;
  */
 public class ConnexionExistanteException extends Exception {
     
+	private static final long serialVersionUID = 4683518919567664416L;
+
 	/**
      * Constructeur avec message d'erreur.
      * 
