@@ -111,7 +111,7 @@ public class GestionnaireReseau {
             throw new MaisonIntrouvableException("Maison introuvable ! Verifiez que vous l'avez creee avant.");
         }
 
-        if (re.getConnexions().containsKey(maison)) {
+        if (re.maisonEstConnectee(maison)) {
             throw new ConnexionExistanteException("La maison " + maison.getNom() + " est deja connectee !");
         }
 
@@ -148,11 +148,11 @@ public class GestionnaireReseau {
             throw new MaisonIntrouvableException("Maison introuvable !");
         }
 
-        if (!re.getConnexions().containsKey(maison)) {
+        if (!re.maisonEstConnectee(maison)) {
             throw new ConnexionIntrouvableException("La maison " + maison.getNom() + " n'est pas connectee !");
         }
 
-        Generateur generateurConnecte = re.getConnexions().get(maison);
+        Generateur generateurConnecte = re.trouverGenerateur(maison);
         if (!generateur.equals(generateurConnecte)) {
             throw new ConnexionIntrouvableException(
                 "La connexion entre " + maison.getNom() + " et " + generateur.getNom() + " n'existe pas ! " +
@@ -160,7 +160,7 @@ public class GestionnaireReseau {
             );
         }
 
-        re.getConnexions().remove(maison);
+        re.supprimerConnexion(maison);
     }
 
     /**
@@ -181,10 +181,8 @@ public class GestionnaireReseau {
         }
         
         // Vérifier que toutes les maisons sont connectées
-        for (Maison maison : re.getMaisons()) {
-            if (!re.getConnexions().containsKey(maison)) {
-                problemes.add(maison.getNom() + " (aucune connexion)");
-            }
+        for (Maison maison : re.maisonsNonConnectees()) {
+        	problemes.add(maison.getNom() + " (aucune connexion)");
         }
         
         double demandeTotale = 0.0;
@@ -340,7 +338,7 @@ public class GestionnaireReseau {
             throw new GenerateurIntrouvableException("Generateur introuvable dans l'ancienne connexion");
         }
         
-        if (!ancienGenerateur.equals(re.getConnexions().get(ancienneMaison))) {
+        if (!ancienGenerateur.equals(re.trouverGenerateur(ancienneMaison))) {
             throw new ConnexionIntrouvableException("Cette connexion n'existe pas");
         }
 
@@ -366,7 +364,8 @@ public class GestionnaireReseau {
         if (!nouvelleMaison.equals(ancienneMaison)) {
             throw new FormatInvalideException("La maison doit rester la meme"); 
         }
-
+        
+        re.supprimerConnexion(ancienneMaison);
         re.ajouterConnexion(nouvelleMaison, nouvelGenerateur);
     }
 

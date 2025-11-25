@@ -385,9 +385,7 @@ public class MenuCLI {
         
         System.out.println("\nCONNEXIONS :");
         System.out.println("─────────────────────────────────");
-        for (var connexion : reseau.getConnexions().entrySet()) {
-            System.out.println("   " + connexion.getKey().getNom() + " <-> " + connexion.getValue().getNom());
-        }
+        reseau.affichageConnexions();
         System.out.println();
     }
 
