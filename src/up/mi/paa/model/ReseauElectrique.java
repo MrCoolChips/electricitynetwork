@@ -1,5 +1,10 @@
 package up.mi.paa.model;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -276,4 +281,125 @@ public class ReseauElectrique {
     		}
     	}
     }
+    
+    public void lireFichierReseau(File f) {
+
+        try (BufferedReader bf = new BufferedReader(new FileReader(f))) {
+
+            String line = null;
+            while ((line = bf.readLine()) != null) {
+
+                line = line.trim();
+                if (line.isEmpty()) continue;
+
+                if (line.startsWith("generateur(")) {
+
+                    String[] info = verifierFormat(line);
+                    if (info != null) {
+
+                        String nom = info[0].trim().toLowerCase();
+                        String capaciteStr = info[1].trim();
+
+                        try {
+                            double capacite = Double.parseDouble(capaciteStr);
+                            Generateur existant = trouverGenerateur(nom);
+
+                            if (existant == null) {
+                                Generateur generateur = new Generateur(nom, capacite);
+                                connexions.put(generateur, new ArrayList<Maison>());
+                            } else {
+                                existant.setCapaciteMaximale(capacite);
+                            }
+
+                        } catch (NumberFormatException e) {
+                            System.out.println("Capacité invalide pour le générateur \"" 
+                                    + nom + "\" dans la ligne : " + line);
+                        }
+                    }
+
+                } else if (line.startsWith("maison(")) {
+
+                    String[] info = verifierFormat(line);
+                    if (info != null) {
+                        String nom = info[0].trim().toLowerCase();
+                        String typeStr = info[1].trim().toUpperCase();
+
+                        try {
+                            TypeConsommation type = TypeConsommation.valueOf(typeStr);
+
+                            Maison existant = trouverMaison(nom);
+                            if (existant == null) {
+                                maisons.add(new Maison(nom, type));
+                            } else {
+                                existant.setTypeConsommation(type);
+                            }
+
+                        } catch (IllegalArgumentException e) {
+                            System.out.println("Type de consommation invalide \"" 
+                                    + typeStr + "\" pour la maison dans la ligne : " + line);
+                        }
+                    }
+
+                } else if (line.startsWith("connexion(")) {
+
+                    String[] info = verifierFormat(line);
+                    if (info != null) {
+
+                        String nom1 = info[0].trim().toLowerCase();
+                        String nom2 = info[1].trim().toLowerCase();
+
+                        Generateur generateur = trouverGenerateur(nom1);
+                        Maison maison = trouverMaison(nom2);
+
+                        if (generateur == null || maison == null) {
+                            generateur = trouverGenerateur(nom2);
+                            maison = trouverMaison(nom1);
+                        }
+
+                        if (generateur == null || maison == null) {
+                            System.out.println("Générateur ou maison n'existe pas (ligne : " + line + ")");
+                        } else {
+                            List<Maison> liste = connexions.get(generateur);
+                            if (liste == null) {
+                                liste = new ArrayList<>();
+                                connexions.put(generateur, liste);
+                            }
+
+                            if (!liste.contains(maison)) {
+                                liste.add(maison);
+                            }
+                        }
+                    }
+                }
+
+            }
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+	
+    public String[] verifierFormat(String ligne) {
+        int indiceParentheseOuvrante = ligne.indexOf('(');
+        int indiceParentheseFermante = ligne.indexOf(')', indiceParentheseOuvrante + 1);
+        String[] info = null;
+
+        if (indiceParentheseOuvrante == -1 || indiceParentheseFermante == -1) {
+            System.out.println("Ligne invalide (parenthèses manquantes) : " + ligne);
+        } else {
+            String contenu = ligne.substring(indiceParentheseOuvrante + 1, indiceParentheseFermante);
+            info = contenu.split(",");
+
+            if (info.length != 2) {
+                System.out.println("Format invalide (deux éléments attendus) : " + ligne);
+                info = null;
+            }
+        }
+
+        return info;
+    }
+
 }

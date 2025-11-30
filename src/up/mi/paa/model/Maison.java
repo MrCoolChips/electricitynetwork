@@ -81,7 +81,7 @@ public class Maison {
         	return false;
         }
         
-        return nom.equals(((Maison) o).nom.toUpperCase());
+        return nom.equals(((Maison) o).nom.toUpperCase()) || typeConsommation.equals(((Maison) o).getTypeConsommation());
     }
     
 }
