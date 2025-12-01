@@ -4,6 +4,7 @@ import up.mi.paa.service.GestionnaireReseau;
 import up.mi.paa.model.*;
 import up.mi.paa.exception.*;
 
+import java.io.File;
 import java.util.Scanner;
 
 /**
@@ -30,6 +31,13 @@ public class MenuCLI {
     public MenuCLI(Scanner sc) {
         this.sc = sc;
         this.gestionnaire = new GestionnaireReseau();
+        /*
+         * Pour tester le systeme fichier
+        File f = new File("sauvegarde/sauvegarde1.txt");
+        File f2 = new File("sauvegarde/sauvegarde2.txt");
+        gestionnaire.getReseauElectrique().lireFichierReseau(f);
+        gestionnaire.getReseauElectrique().ecrireFichierReseau(f2);
+        */
     }
     
     /**

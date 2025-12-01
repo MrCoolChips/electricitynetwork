@@ -1,10 +1,13 @@
 package up.mi.paa.model;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -326,7 +329,7 @@ public class ReseauElectrique {
 
                         try {
                             TypeConsommation type = TypeConsommation.valueOf(typeStr);
-
+                            
                             Maison existant = trouverMaison(nom);
                             if (existant == null) {
                                 maisons.add(new Maison(nom, type));
@@ -359,15 +362,7 @@ public class ReseauElectrique {
                         if (generateur == null || maison == null) {
                             System.out.println("Générateur ou maison n'existe pas (ligne : " + line + ")");
                         } else {
-                            List<Maison> liste = connexions.get(generateur);
-                            if (liste == null) {
-                                liste = new ArrayList<>();
-                                connexions.put(generateur, liste);
-                            }
-
-                            if (!liste.contains(maison)) {
-                                liste.add(maison);
-                            }
+                        	ajouterConnexion(maison, generateur);
                         }
                     }
                 }
@@ -382,7 +377,7 @@ public class ReseauElectrique {
     }
 
 	
-    public String[] verifierFormat(String ligne) {
+    private String[] verifierFormat(String ligne) {
         int indiceParentheseOuvrante = ligne.indexOf('(');
         int indiceParentheseFermante = ligne.indexOf(')', indiceParentheseOuvrante + 1);
         String[] info = null;
@@ -400,6 +395,35 @@ public class ReseauElectrique {
         }
 
         return info;
+    }
+    
+    public void ecrireFichierReseau(File f) {
+    	try(BufferedWriter bw = new BufferedWriter(new FileWriter(f));
+    			PrintWriter pw = new PrintWriter(bw)) {
+    		
+    		List<String> connexion = new ArrayList<String>();
+    		for (Generateur g: connexions.keySet()) {
+    			pw.println("generateur(" + g.getNom() + "," + (int) g.getCapaciteMaximale() + ").");
+    			for (Maison m: connexions.get(g)) {
+    				connexion.add("connexion(" + g.getNom() + "," + m.getNom() + ").");
+    			}
+    		}
+    		
+    		for (Maison m: maisons) {
+    			pw.println("maison(" + m.getNom() + "," + m.getTypeConsommation().name() + ").");
+    		}
+    		
+    		for(String s: connexion) {
+    			pw.println(s);
+    		}
+    		pw.close();
+    	} catch(FileNotFoundException e) {
+    		e.printStackTrace();
+    	} catch(IOException e) {
+    		e.printStackTrace();
+    	}
+     	
+    	
     }
 
 }
