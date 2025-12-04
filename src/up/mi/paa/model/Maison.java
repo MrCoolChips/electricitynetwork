@@ -16,7 +16,7 @@ public class Maison {
      * @param typeConsommation Le type de consommation electrique (BASSE, NORMAL, FORTE)
      */
     public Maison(String nom, TypeConsommation typeConsommation) {
-        this.nom = nom;
+        this.nom = nom.toUpperCase();
         this.typeConsommation = typeConsommation;
     }
 

@@ -16,7 +16,7 @@ public class Generateur {
      * @param capaciteMaximale La capacite maximale de production en kW
      */
     public Generateur(String nom, double capaciteMaximale) {
-        this.nom = nom;
+        this.nom = nom.toUpperCase();
         this.capaciteMaximale = capaciteMaximale;
     }
 

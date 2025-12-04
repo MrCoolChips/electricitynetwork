@@ -98,7 +98,7 @@ public class GestionnaireReseau {
         Generateur generateur = re.trouverGenerateur(element1);
         Maison maison = re.trouverMaison(element2);
 
-        if (generateur == null) {
+        if (generateur == null || maison == null) {
             generateur = re.trouverGenerateur(element2);
             maison = re.trouverMaison(element1);
         }
@@ -255,7 +255,7 @@ public class GestionnaireReseau {
      * @return La somme des consommations en kW
      */
     public double getSommeDesDemandesElectriques(Generateur g) {
-        List<Maison> m = re.trouverLesMaisonsDesGenerateurs(g);
+        List<Maison> m = re.trouverLesMaisonsDeGenerateur(g);
         double sommeDesDemandesElectriques = 0.0;
         for (int i = 0; i < m.size(); i++) {
             sommeDesDemandesElectriques += m.get(i).getConsommation();

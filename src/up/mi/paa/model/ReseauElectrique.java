@@ -1,13 +1,5 @@
 package up.mi.paa.model;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -181,7 +173,7 @@ public class ReseauElectrique {
      * @param g Le generateur
      * @return La liste des maisons connectees a ce generateur
      */
-    public List<Maison> trouverLesMaisonsDesGenerateurs(Generateur g) {
+    public List<Maison> trouverLesMaisonsDeGenerateur(Generateur g) {
         List<Maison> liste = connexions.get(g);
         if (liste == null) {
             return new ArrayList<>();

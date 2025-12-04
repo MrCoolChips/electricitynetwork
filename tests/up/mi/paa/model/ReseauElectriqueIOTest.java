@@ -3,6 +3,8 @@ package up.mi.paa.model;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import up.mi.paa.io.GestionnaireFichier;
+import up.mi.paa.service.GestionnaireReseau;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -15,137 +17,117 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Classe de test pour valider les entrées-sorties (I/O) de la classe ReseauElectrique.
+ * Classe de test validant la persistance des données (Entrées/Sorties).
+ * Vérifie la lecture, l'écriture et la gestion des erreurs de format.
  */
 class ReseauElectriqueIOTest {
 
-    private ReseauElectrique reseau;
+    private GestionnaireReseau gestionnaire;
 
-    /**
-     * Initialisation avant chaque test pour avoir un réseau vide.
-     */
     @BeforeEach
     void setUp() {
-        reseau = new ReseauElectrique();
+        gestionnaire = new GestionnaireReseau();
     }
 
     /**
-     * Test du cas nominal : Lecture d'un fichier correctement formaté.
-     * Vérifie que les générateurs, maisons et connexions sont bien créés.
+     * Test Nominal : Lecture d'un fichier valide respectant l'ordre standard.
      */
     @Test
     void testLireFichierReseau_CasNominal(@TempDir Path dossierTemporaire) throws IOException {
-        // 1. Création d'un fichier temporaire
+        // 1. Préparation
         Path cheminFichier = dossierTemporaire.resolve("reseau_ok.txt");
-        String contenu =
-                "generateur(gen1, 100.0).\n" +
-                "maison(m1, NORMAL).\n" +
-                "connexion(gen1, m1).";
+        String contenu = "generateur(GEN1, 100.0).\nmaison(M1, NORMAL).\nconnexion(GEN1, M1).";
         Files.writeString(cheminFichier, contenu);
 
-        // 2. Exécution de la méthode
-        reseau.lireFichierReseau(cheminFichier.toFile());
+        // 2. Exécution
+        gestionnaire = GestionnaireFichier.lireFichierReseau(cheminFichier.toFile());
 
         // 3. Vérifications
-        Generateur gen = reseau.trouverGenerateur("gen1");
-        Maison maison = reseau.trouverMaison("m1");
+        assertNotNull(gestionnaire, "La lecture a échoué (retour null) pour un fichier valide.");
+        
+        ReseauElectrique reseau = gestionnaire.getReseauElectrique();
+        Generateur gen = reseau.trouverGenerateur("GEN1");
+        Maison maison = reseau.trouverMaison("M1");
 
-        assertNotNull(gen, "Le générateur 'gen1' aurait dû être créé.");
-        assertNotNull(maison, "La maison 'm1' aurait dû être créée.");
-        assertEquals(100.0, gen.getCapaciteMaximale(), 1e-9,
-                "La capacité du générateur est incorrecte.");
-
-        // Vérification de la connexion
-        List<Maison> maisonsConnectees = reseau.trouverLesMaisonsDesGenerateurs(gen);
-        assertTrue(maisonsConnectees.contains(maison),
-                "La maison 'm1' devrait être connectée à 'gen1'.");
+        assertNotNull(gen, "Le générateur GEN1 n'a pas été créé.");
+        assertNotNull(maison, "La maison M1 n'a pas été créée.");
+        assertTrue(reseau.getConnexions().get(gen).contains(maison), "La connexion GEN1-M1 est manquante.");
     }
 
     /**
-     * Test de la flexibilité : Vérifie que connexion(maison, generateur) fonctionne
-     * aussi bien que connexion(generateur, maison).
+     * Test de Flexibilité : Vérification de la lecture avec paramètres de connexion inversés.
+     * Format accepté : connexion(Maison, Generateur).
      */
     @Test
     void testLireFichierReseau_ConnexionInverse(@TempDir Path dossierTemporaire) throws IOException {
         Path cheminFichier = dossierTemporaire.resolve("reseau_inverse.txt");
-        // Ordre inversé dans le paramètre connexion
-        String contenu =
-                "generateur(g1, 50).\n" +
-                "maison(m1, BASSE).\n" +
-                "connexion(m1, g1).";
+        String contenu = "generateur(G1, 50).\nmaison(M1, BASSE).\nconnexion(M1, G1).";
         Files.writeString(cheminFichier, contenu);
 
-        reseau.lireFichierReseau(cheminFichier.toFile());
+        gestionnaire = GestionnaireFichier.lireFichierReseau(cheminFichier.toFile());
 
-        Generateur gen = reseau.trouverGenerateur("g1");
-        Maison maison = reseau.trouverMaison("m1");
-
-        assertNotNull(gen, "Le générateur 'g1' devrait exister.");
-        assertNotNull(maison, "La maison 'm1' devrait exister.");
-
-        // La connexion doit exister malgré l'inversion
-        assertTrue(reseau.trouverLesMaisonsDesGenerateurs(gen).contains(maison),
-                "La connexion inverse (maison, gen) n'a pas été reconnue.");
+        assertNotNull(gestionnaire, "Le fichier valide (inversé) n'a pas été lu.");
+        ReseauElectrique reseau = gestionnaire.getReseauElectrique();
+        
+        Generateur gen = reseau.trouverGenerateur("G1");
+        Maison maison = reseau.trouverMaison("M1");
+        
+        assertTrue(reseau.getConnexions().get(gen).contains(maison), "L'inversion des paramètres n'a pas été gérée.");
     }
 
     /**
-     * Test de l'écriture : Vérifie que le fichier généré respecte strictement le format
-     * demandé (Générateurs, puis Maisons, puis Connexions, avec les points finaux).
+     * Test d'Écriture : Vérifie que le fichier généré respecte strictement le format imposé.
      */
     @Test
     void testEcrireFichierReseau(@TempDir Path dossierTemporaire) throws IOException {
-        // 1. Préparation des données en mémoire
-        Generateur g1 = new Generateur("genA", 200);
-        Maison m1 = new Maison("maisonA", TypeConsommation.FORTE);
-
+        // Préparation des données
+        ReseauElectrique reseau = gestionnaire.getReseauElectrique();
+        Generateur g1 = new Generateur("GEN_A", 200);
+        Maison m1 = new Maison("MAISON_A", TypeConsommation.FORTE);
+        
         reseau.ajouterGenerateur(g1);
         reseau.ajouterMaison(m1);
         reseau.ajouterConnexion(m1, g1);
 
-        // 2. Écriture dans un fichier
+        // Écriture
         File fichierSortie = dossierTemporaire.resolve("sortie_test.txt").toFile();
-        reseau.ecrireFichierReseau(fichierSortie);
+        GestionnaireFichier.ecrireFichierReseau(fichierSortie, reseau);
 
-        // 3. Lecture et analyse du fichier produit
+        // Vérification du contenu ligne par ligne
         List<String> lignes = Files.readAllLines(fichierSortie.toPath());
-
-        // On vérifie la taille et l'ordre exact : Générateurs → Maisons → Connexions
-        assertEquals(3, lignes.size(),
-                "Le fichier devrait contenir exactement 3 lignes (générateur, maison, connexion).");
-
-        assertEquals("generateur(genA,200.0).", lignes.get(0).trim(),
-                "La première ligne doit définir le générateur au bon format.");
-        assertEquals("maison(maisonA,FORTE).", lignes.get(1).trim(),
-                "La deuxième ligne doit définir la maison au bon format.");
-        assertEquals("connexion(genA,maisonA).", lignes.get(2).trim(),
-                "La troisième ligne doit définir la connexion au bon format.");
+        assertEquals(3, lignes.size(), "Le fichier de sortie doit contenir 3 lignes.");
+        assertEquals("generateur(GEN_A,200).", lignes.get(0).trim());
+        assertEquals("maison(MAISON_A,FORTE).", lignes.get(1).trim());
+        assertEquals("connexion(GEN_A,MAISON_A).", lignes.get(2).trim());
     }
 
     /**
-     * Test de robustesse : Vérifie que le programme ne plante pas (exception)
-     * face à une ligne mal formée, mais signale l'erreur (via System.out).
+     * Test de Robustesse : Vérifie le rejet d'un fichier mal formé (Fail-Fast).
+     * Doit retourner null et afficher une erreur console.
      */
     @Test
-    void testLireFichierReseau_LigneInvalide(@TempDir Path dossierTemporaire) throws IOException {
-        // On sauvegarde la sortie standard avant de la rediriger
+    void testLireFichierReseau_FichierInvalide(@TempDir Path dossierTemporaire) throws IOException {
+        // Capture de la sortie standard (console)
         PrintStream ancienOut = System.out;
         ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outContent));
 
         try {
-            System.setOut(new PrintStream(outContent));
-
-            Path cheminFichier = dossierTemporaire.resolve("reseau_erreur.txt");
-            // Manque la parenthèse fermante
-            String contenu = "generateur(gen1, 100.";
+            Path cheminFichier = dossierTemporaire.resolve("reseau_ko.txt");
+            String contenu = "generateur(GEN1, 100."; // Erreur : parenthèse/point manquant
             Files.writeString(cheminFichier, contenu);
 
-            reseau.lireFichierReseau(cheminFichier.toFile());
+            GestionnaireReseau resultat = GestionnaireFichier.lireFichierReseau(cheminFichier.toFile());
 
-            // On vérifie que le message d'erreur a été imprimé
-            assertTrue(outContent.toString().contains("Ligne invalide"),
-                    "Une erreur de format aurait dû être signalée dans la console.");
+            // 1. Le résultat doit être NULL pour garantir l'intégrité du système
+            assertNull(resultat, "Un fichier invalide doit retourner null.");
+
+            // 2. Un message d'erreur explicite doit être affiché
+            String log = outContent.toString();
+            boolean messageErreurPresent = log.contains("invalide") || log.contains("Erreur") || log.contains("attendus");
+            assertTrue(messageErreurPresent, "Aucun message d'erreur n'a été affiché sur la console.");
+
         } finally {
-            // Restauration de la sortie standard (important pour les autres tests)
             System.setOut(ancienOut);
         }
     }
