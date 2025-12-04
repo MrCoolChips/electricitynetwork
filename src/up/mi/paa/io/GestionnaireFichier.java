@@ -18,29 +18,28 @@ import up.mi.paa.model.TypeConsommation;
 import up.mi.paa.service.GestionnaireReseau;
 
 /**
- * Classe utilitaire pour la gestion des entrées/sorties de fichiers liés au réseau électrique.
+ * Classe utilitaire assurant la persistance des données du réseau électrique.
+ * Gère la lecture et l'écriture des fichiers selon le format spécifié.
  */
 public class GestionnaireFichier {
 
     /**
-     * Constructeur privé pour empêcher l'instanciation de cette classe utilitaire.
+     * Constructeur privé (classe utilitaire).
      */
     private GestionnaireFichier() {}
 
     /**
-     * Lit un fichier texte et construit le réseau électrique correspondant.
+     * Construit un gestionnaire de réseau à partir d'un fichier texte.
      * 
-     * Le fichier doit impérativement respecter l'ordre de déclaration : 
-     * générateurs, maisons, puis connexions. Tout manquement au format ou à l'ordre,
-     * ainsi que toute incohérence dans les données, entraînera l'arrêt de la lecture.
+     * Le fichier doit respecter l'ordre strict : Générateurs -> Maisons -> Connexions.
+     * Tout défaut de format ou d'intégrité des données interrompt la lecture.
      *
-     * @param f Le fichier contenant la description du réseau.
-     * @return L'objet {@link ReseauElectrique} construit, ou {@code null} en cas d'erreur 
-     * (fichier introuvable, format invalide, ordre incorrect, données erronées).
+     * @param f Le fichier source à lire.
+     * @return Une instance de {@link GestionnaireReseau} initialisée, ou {@code null} en cas d'erreur.
      */
     public static GestionnaireReseau lireFichierReseau(File f) {
 
-    	GestionnaireReseau reseau = new GestionnaireReseau();
+        GestionnaireReseau reseau = new GestionnaireReseau();
 
         try (BufferedReader bf = new BufferedReader(new FileReader(f))) {
 
@@ -53,14 +52,13 @@ public class GestionnaireFichier {
                 if (line.isEmpty()) continue;
 
                 if (line.startsWith("generateur(")) {
-
                     if (phase.equals("maison") || phase.equals("connexion")) {
-                        throw new IOException("Erreur d'ordre : générateur trouvé après maison ou connexion.");
+                        throw new IOException("Ordre invalide : définition de générateur après maison/connexion.");
                     }
                     phase = "generateur";
 
                     String[] info = verifierFormat(line);
-                    if (info == null) throw new IOException("Format invalide : " + line);
+                    if (info == null) throw new IOException("Format incorrect : " + line);
 
                     String nom = info[0].trim().toUpperCase();
                     String capaciteStr = info[1].trim();
@@ -69,18 +67,17 @@ public class GestionnaireFichier {
                         double capacite = Double.parseDouble(capaciteStr);
                         reseau.ajouterOuModifierGenerateur(nom, capacite);
                     } catch (NumberFormatException e) {
-                        throw new IOException("Capacité invalide (" + capaciteStr + ") : " + line);
+                        throw new IOException("Capacité non numérique (" + capaciteStr + ") : " + line);
                     }
 
                 } else if (line.startsWith("maison(")) {
-
                     if (phase.equals("connexion")) {
-                        throw new IOException("Erreur d'ordre : maison trouvée après connexion.");
+                        throw new IOException("Ordre invalide : définition de maison après connexion.");
                     }
                     phase = "maison";
 
                     String[] info = verifierFormat(line);
-                    if (info == null) throw new IOException("Format invalide : " + line);
+                    if (info == null) throw new IOException("Format incorrect : " + line);
 
                     String nom = info[0].trim().toUpperCase();
                     String typeStr = info[1].trim().toUpperCase();
@@ -89,14 +86,13 @@ public class GestionnaireFichier {
                         TypeConsommation type = TypeConsommation.valueOf(typeStr);
                         reseau.ajouterOuModifierMaison(nom, type);
                     } catch (IllegalArgumentException e) {
-                        throw new IOException("Type de consommation invalide (" + typeStr + ") : " + line);
+                        throw new IOException("Type de consommation inconnu (" + typeStr + ") : " + line);
                     }
 
                 } else if (line.startsWith("connexion(")) {
-
                     phase = "connexion";
                     String[] info = verifierFormat(line);
-                    if (info == null) throw new IOException("Format invalide : " + line);
+                    if (info == null) throw new IOException("Format incorrect : " + line);
 
                     String nom1 = info[0].trim().toUpperCase();
                     String nom2 = info[1].trim().toUpperCase();
@@ -106,13 +102,13 @@ public class GestionnaireFichier {
             }
 
         } catch (FileNotFoundException e) {
-            System.out.println("Fichier introuvable : " + e.getMessage());
+            System.err.println("[Erreur IO] Fichier introuvable : " + e.getMessage());
             return null;
         } catch (IOException e) {
-            System.out.println("Erreur de lecture ou de format : " + e.getMessage());
+            System.err.println("[Erreur Format] Lecture impossible : " + e.getMessage());
             return null;
         } catch (Exception e) {
-            System.out.println("Erreur inattendue : " + e.getMessage());
+            System.err.println("[Erreur Système] Exception inattendue : " + e.getMessage());
             return null;
         }
 
@@ -120,99 +116,79 @@ public class GestionnaireFichier {
     }
 
     /**
-     * Vérifie le format d'une ligne du fichier et en extrait les deux arguments entre parenthèses.
+     * Valide la syntaxe d'une ligne et extrait les arguments.
+     * Format attendu : {@code cle(arg1,arg2).}
      *
-     * Exemple de ligne valide :
-     * - generateur(G1, 100).
-     * - maison(M1, FORTE).
-     * - connexion(G1, M1).
-     *
-     * Conditions :
-     * - la ligne doit se terminer par un point,
-     * - il doit y avoir une parenthèse ouvrante puis une parenthèse fermante,
-     * - à l'intérieur des parenthèses, il doit y avoir exactement deux éléments séparés par une virgule.
-     *
-     * Si le format est invalide, un message d'erreur est affiché et la méthode renvoie null.
-     *
-     * @param ligne ligne brute lue dans le fichier
-     * @return un tableau de deux chaînes correspondant aux arguments trouvés,
-     *         ou null si le format est invalide
+     * @param ligne La ligne brute.
+     * @return Tableau contenant les deux arguments, ou {@code null} si invalide.
      */
     public static String[] verifierFormat(String ligne) {
-    	if (!ligne.endsWith(".")) {
-            System.out.println("Format invalide ( . attendus) : " + ligne);
+        if (!ligne.endsWith(".")) {
+            System.err.println("Syntaxe invalide (point final manquant) : " + ligne);
             return null;
         }
-    	
-        int indiceParentheseOuvrante = ligne.indexOf('(');
-        int indiceParentheseFermante = ligne.indexOf(')', indiceParentheseOuvrante + 1);
-        String[] info = null;
+        
+        int indiceOuvrante = ligne.indexOf('(');
+        int indiceFermante = ligne.indexOf(')', indiceOuvrante + 1);
 
-        if (indiceParentheseOuvrante == -1 || indiceParentheseFermante == -1) {
-            System.out.println("Ligne invalide (parenthèses manquantes) : " + ligne);
-        } else {
-            String contenu = ligne.substring(indiceParentheseOuvrante + 1, indiceParentheseFermante);
-            info = contenu.split(",");
+        if (indiceOuvrante == -1 || indiceFermante == -1) {
+            System.err.println("Syntaxe invalide (parenthèses manquantes) : " + ligne);
+            return null;
+        }
 
-            if (info.length != 2) {
-                System.out.println("Format invalide (deux éléments attendus) : " + ligne);
-                info = null;
-            }
+        String contenu = ligne.substring(indiceOuvrante + 1, indiceFermante);
+        String[] info = contenu.replaceAll("[\\s\\u00A0]+", "").toUpperCase().split(",");
+
+        if (info.length != 2) {
+            System.err.println("Syntaxe invalide (2 arguments attendus) : " + ligne);
+            return null;
         }
 
         return info;
     }
     
     /**
-     * Écrit le contenu d'un {@link ReseauElectrique} dans un fichier texte,
-     * au même format que celui accepté par {@link #lireFichierReseau(File)}.
+     * Sauvegarde l'état du réseau électrique dans un fichier texte.
+     * Le format de sortie est compatible avec la méthode de lecture.
      *
-     * L'ordre d'écriture est :
-     * 1) tous les générateurs,
-     * 2) toutes les maisons,
-     * 3) toutes les connexions.
-     *
-     * Exemple de lignes produites :
-     * - generateur(G1,60).
-     * - maison(M1,FORTE).
-     * - connexion(G1,M1).
-     *
-     * @param f  fichier de sortie (sera créé ou écrasé)
-     * @param re réseau électrique à sérialiser dans le fichier
+     * @param f Le fichier de destination.
+     * @param re Le modèle du réseau à sauvegarder.
      */
     public static void ecrireFichierReseau(File f, ReseauElectrique re) {
-    	try(BufferedWriter bw = new BufferedWriter(new FileWriter(f));
-    			PrintWriter pw = new PrintWriter(bw)) {
-    		
-    		List<String> connexion = new ArrayList<String>();
-    		
-    		// écriture des générateurs et préparation des lignes de connexions
-    		for (Generateur g: re.getGenerateurs()) {
-    			pw.println("generateur(" + g.getNom() + "," + (int) g.getCapaciteMaximale() + ").");
-    			List<Maison> maisonsConnectees = re.trouverLesMaisonsDeGenerateur(g);
-    			if (maisonsConnectees != null) {
-    			    for (Maison m: maisonsConnectees) {
-    			        connexion.add("connexion(" + g.getNom() + "," + m.getNom() + ").");
-    			    }
-    			}
-    		}
-    		
-    		// écriture des maisons
-    		for (Maison m: re.getMaisons()) {
-    			pw.println("maison(" + m.getNom() + "," + m.getTypeConsommation().name() + ").");
-    		}
-    		
-    		// écriture des connexions
-    		for(String s: connexion) {
-    			pw.println(s);
-    		}
-    		
-    	} catch(FileNotFoundException e) {
-    		System.out.println("Fichier introuvable : " + e.getMessage());
-    	} catch(IOException e) {
-    		System.out.println("Erreur de lecture ou de format : " + e.getMessage());
-    	}
-    	
-    	System.out.println("Fichier écrit avec succès : " + f.getName());
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(f));
+             PrintWriter pw = new PrintWriter(bw)) {
+            
+            List<String> lignesConnexions = new ArrayList<>();
+            
+            // 1. Écriture des générateurs
+            for (Generateur g : re.getGenerateurs()) {
+                pw.println("generateur(" + g.getNom() + "," + (int) g.getCapaciteMaximale() + ").");
+                
+                // Préparation des connexions associées
+                List<Maison> maisonsConnectees = re.trouverLesMaisonsDeGenerateur(g);
+                if (maisonsConnectees != null) {
+                    for (Maison m : maisonsConnectees) {
+                        lignesConnexions.add("connexion(" + g.getNom() + "," + m.getNom() + ").");
+                    }
+                }
+            }
+            
+            // 2. Écriture des maisons
+            for (Maison m : re.getMaisons()) {
+                pw.println("maison(" + m.getNom() + "," + m.getTypeConsommation().name() + ").");
+            }
+            
+            // 3. Écriture des connexions
+            for (String ligne : lignesConnexions) {
+                pw.println(ligne);
+            }
+            
+            System.out.println("Sauvegarde réussie : " + f.getName());
+
+        } catch (FileNotFoundException e) {
+            System.err.println("[Erreur IO] Fichier inaccessible : " + e.getMessage());
+        } catch (IOException e) {
+            System.err.println("[Erreur IO] Échec de l'écriture : " + e.getMessage());
+        }
     }
 }
