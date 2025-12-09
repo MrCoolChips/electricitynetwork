@@ -1,5 +1,6 @@
 package up.mi.paa.ui;
 
+import up.mi.paa.service.CalculateurCouts;
 import up.mi.paa.service.GestionnaireReseau;
 import up.mi.paa.model.*;
 import up.mi.paa.exception.*;
@@ -22,15 +23,17 @@ public class MenuCLI {
 
     private Scanner sc;
     private GestionnaireReseau gestionnaire;
+    private CalculateurCouts calculateur;
     
     /**
      * Constructeur du menu CLI.
      * 
      * @param sc Le scanner pour lire les entrees utilisateur
      */
-    public MenuCLI(Scanner sc) {
+    public MenuCLI(Scanner sc, int lambda) {
         this.sc = sc;
         this.gestionnaire = new GestionnaireReseau();
+        this.calculateur = new CalculateurCouts(lambda);
         /*
          * Pour tester le systeme fichier
         File f = new File("sauvegarde/sauvegarde1.txt");
@@ -326,8 +329,8 @@ public class MenuCLI {
      */
     private void calculerCout() {
         try {
-            double cout = gestionnaire.calculerCout();
-            System.out.println("\n" + CYAN + "Le cout du reseau electrique actuel est : " + String.format("%.2f", cout) + RESET + "\n");
+            Couts cout = calculateur.calculerCout(gestionnaire.getReseauElectrique());
+            System.out.println("\n" + CYAN + "Le cout du reseau electrique actuel est : " + cout.toString() + RESET + "\n");
         } catch(ArithmeticException e) {
             System.out.println(ROUGE + "[ERREUR]" + RESET + " Impossible de calculer le cout : " + e.getMessage() + "\n");
         }

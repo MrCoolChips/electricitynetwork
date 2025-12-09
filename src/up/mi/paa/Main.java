@@ -15,7 +15,17 @@ public class Main {
      */
     public static void main(String[] args) {
     	Scanner sc = new Scanner(System.in);
-        MenuCLI menu = new MenuCLI(sc);
+    	int lambda = 10;
+    	
+    	if (args.length > 1) {
+            try {
+                lambda = Integer.parseInt(args[1]);
+            } catch (NumberFormatException e) {
+                System.out.println("Valeur lambda invalide, la valeur par défaut (10) est utilisée.");
+            }
+        }
+    	
+        MenuCLI menu = new MenuCLI(sc, lambda);
         menu.demarrer();
         sc.close();
     }
