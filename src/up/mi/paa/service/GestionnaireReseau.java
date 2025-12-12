@@ -3,9 +3,6 @@ package up.mi.paa.service;
 import up.mi.paa.model.*;
 import up.mi.paa.exception.*;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Classe gerant la logique metier du reseau electrique.
  * Gere les operations CRUD et les calculs de cout, surcharge et dispersion.
@@ -164,23 +161,26 @@ public class GestionnaireReseau {
     /**
      * Verifie la validite du reseau.
      * 
-     * @return Un tableau de messages d'erreur (vide si valide)
+     * @return Un String de messages d'erreur (vide si valide)
      */
-    public String[] verifierValiditeReseau() {
-        List<String> problemes = new ArrayList<>();
-    
+    public String verifierValiditeReseau() {
+        StringBuffer problemes = new StringBuffer();
+        int compteur = 1;
         // Vérifier qu'il y a au moins une maison et un générateur
         if (re.getMaisons().isEmpty()) {
-            problemes.add("Le reseau doit contenir au moins une maison");
+        	problemes.append(compteur + ") Le reseau doit contenir au moins une maison \n");
+        	compteur++;
         }
         
         if (re.getGenerateurs().isEmpty()) {
-            problemes.add("Le reseau doit contenir au moins un generateur");
+        	problemes.append(compteur + ") Le reseau doit contenir au moins un generateur \n");
+        	compteur++;
         }
         
         // Vérifier que toutes les maisons sont connectées
         for (Maison maison : re.maisonsNonConnectees()) {
-        	problemes.add(maison.getNom() + " (aucune connexion)");
+        	problemes.append(compteur + ") " + maison.getNom() + " (aucune connexion) \n");
+        	compteur++;
         }
         
         double demandeTotale = 0.0;
@@ -195,10 +195,11 @@ public class GestionnaireReseau {
         }
         
         if (demandeTotale > capaciteTotale) {
-            problemes.add("Demande totale (" + String.format("%.2f", demandeTotale) + " kW) superieure a la capacite totale (" + String.format("%.2f", capaciteTotale) + " kW)");
+        	problemes.append(compteur + ") Demande totale (" + String.format("%.2f", demandeTotale) + " kW) superieure a la capacite totale (" + String.format("%.2f", capaciteTotale) + " kW) \n");
+        	compteur++;
         }
         
-        return problemes.toArray(new String[0]);
+        return problemes.toString();
     }
     
     /**

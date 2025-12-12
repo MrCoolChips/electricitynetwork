@@ -30,8 +30,7 @@ public class GestionnaireFichier {
 
     /**
      * Construit un gestionnaire de réseau à partir d'un fichier texte.
-     * 
-     * Le fichier doit respecter l'ordre strict : Générateurs -> Maisons -> Connexions.
+     * * Le fichier doit respecter l'ordre strict : Générateurs -> Maisons -> Connexions.
      * Tout défaut de format ou d'intégrité des données interrompt la lecture.
      *
      * @param f Le fichier source à lire.
@@ -40,72 +39,88 @@ public class GestionnaireFichier {
     public static GestionnaireReseau lireFichierReseau(File f) {
 
         GestionnaireReseau reseau = new GestionnaireReseau();
-
+        int numeroLigne = 0;
+        
         try (BufferedReader bf = new BufferedReader(new FileReader(f))) {
 
             String line = null;
             String phase = "generateur";
 
             while ((line = bf.readLine()) != null) {
-
+            	numeroLigne++;
                 line = line.trim();
-                if (line.isEmpty()) continue;
+                
+                if (line.isEmpty()) {
+                	continue;
+                }
 
-                if (line.startsWith("generateur(")) {
-                    if (phase.equals("maison") || phase.equals("connexion")) {
-                        throw new IOException("Ordre invalide : définition de générateur après maison/connexion.");
-                    }
-                    phase = "generateur";
-
-                    String[] info = verifierFormat(line);
-                    if (info == null) throw new IOException("Format incorrect : " + line);
-
-                    String nom = info[0].trim().toUpperCase();
-                    String capaciteStr = info[1].trim();
-
-                    try {
+                try {
+	                if (line.startsWith("generateur(")) {
+	                    if (phase.equals("maison") || phase.equals("connexion")) {
+	                        throw new IOException("Ordre invalide : définition de générateur après maison/connexion.");
+	                    }
+	                    phase = "generateur";
+	                    
+	                    String[] info = verifierFormat(line);
+	                    if (info == null) {
+	                    	throw new IOException("Format incorrect.");
+	                    }
+	                    
+	                    String nom = info[0].trim().toUpperCase();
+	                    String capaciteStr = info[1].trim();
+	
                         double capacite = Double.parseDouble(capaciteStr);
                         reseau.ajouterOuModifierGenerateur(nom, capacite);
-                    } catch (NumberFormatException e) {
-                        throw new IOException("Capacité non numérique (" + capaciteStr + ") : " + line);
-                    }
-
-                } else if (line.startsWith("maison(")) {
-                    if (phase.equals("connexion")) {
-                        throw new IOException("Ordre invalide : définition de maison après connexion.");
-                    }
-                    phase = "maison";
-
-                    String[] info = verifierFormat(line);
-                    if (info == null) throw new IOException("Format incorrect : " + line);
-
-                    String nom = info[0].trim().toUpperCase();
-                    String typeStr = info[1].trim().toUpperCase();
-
-                    try {
+	
+	                } else if (line.startsWith("maison(")) {
+	                    if (phase.equals("connexion")) {
+	                        throw new IOException("Ordre invalide : définition de maison après connexion.");
+	                    }
+	                    phase = "maison";
+	                    
+	                    String[] info = verifierFormat(line);
+	                    if (info == null) {
+	                    	throw new IOException("Format incorrect.");
+	                    }
+	                    
+	                    String nom = info[0].trim().toUpperCase();
+	                    String typeStr = info[1].trim().toUpperCase();
+	
                         TypeConsommation type = TypeConsommation.valueOf(typeStr);
                         reseau.ajouterOuModifierMaison(nom, type);
-                    } catch (IllegalArgumentException e) {
-                        throw new IOException("Type de consommation inconnu (" + typeStr + ") : " + line);
-                    }
-
-                } else if (line.startsWith("connexion(")) {
-                    phase = "connexion";
-                    String[] info = verifierFormat(line);
-                    if (info == null) throw new IOException("Format incorrect : " + line);
-
-                    String nom1 = info[0].trim().toUpperCase();
-                    String nom2 = info[1].trim().toUpperCase();
-
-                    reseau.creerConnexion(nom1, nom2);
+	
+	                } else if (line.startsWith("connexion(")) {
+	                    phase = "connexion";
+	                    
+	                    String[] info = verifierFormat(line);
+	                    if (info == null) {
+	                    	throw new IOException("Format incorrect.");
+	                    }
+	
+	                    String nom1 = info[0].trim().toUpperCase();
+	                    String nom2 = info[1].trim().toUpperCase();
+	
+	                    reseau.creerConnexion(nom1, nom2);
+	                }
+                } catch (NumberFormatException e) {
+                    throw new IOException("Capacité non numérique : " + e.getMessage());
+                } catch (IllegalArgumentException e) {
+                    throw new IOException("Type de consommation inconnu : " + e.getMessage());
+                } catch (Exception e) {
+                    throw new IOException(e.getMessage());
                 }
+            }
+            
+            String problems = reseau.verifierValiditeReseau();
+            if (problems.length() != 0) {
+            	throw new Exception(problems);
             }
 
         } catch (FileNotFoundException e) {
             System.err.println("[Erreur IO] Fichier introuvable : " + e.getMessage());
             return null;
         } catch (IOException e) {
-            System.err.println("[Erreur Format] Lecture impossible : " + e.getMessage());
+            System.err.println("[Erreur Format] Problème à la ligne " + numeroLigne + " : " + e.getMessage());
             return null;
         } catch (Exception e) {
             System.err.println("[Erreur Système] Exception inattendue : " + e.getMessage());
@@ -124,7 +139,6 @@ public class GestionnaireFichier {
      */
     public static String[] verifierFormat(String ligne) {
         if (!ligne.endsWith(".")) {
-            System.err.println("Syntaxe invalide (point final manquant) : " + ligne);
             return null;
         }
         
@@ -132,7 +146,6 @@ public class GestionnaireFichier {
         int indiceFermante = ligne.indexOf(')', indiceOuvrante + 1);
 
         if (indiceOuvrante == -1 || indiceFermante == -1) {
-            System.err.println("Syntaxe invalide (parenthèses manquantes) : " + ligne);
             return null;
         }
 
@@ -140,7 +153,6 @@ public class GestionnaireFichier {
         String[] info = contenu.replaceAll("[\\s\\u00A0]+", "").toUpperCase().split(",");
 
         if (info.length != 2) {
-            System.err.println("Syntaxe invalide (2 arguments attendus) : " + ligne);
             return null;
         }
 

@@ -268,16 +268,15 @@ public class MenuCLI {
         System.out.println("│         VERIFICATION DU RESEAU                 │");
         System.out.println("└────────────────────────────────────────────────┘");
     
-        String[] problemes = gestionnaire.verifierValiditeReseau();
+        String problemes = gestionnaire.verifierValiditeReseau();
         
-        if (problemes.length == 0) {
+        if (problemes.length() == 0) {
             System.out.println(VERT + "[OK]" + RESET + " Reseau valide ! Chaque maison est connectee a exactement un generateur.");
             return true;
         } else {
             System.out.println(JAUNE + "[ATTENTION]" + RESET + " Problemes detectes :");
-            for (String probleme : problemes) {
-                System.out.println("  - " + probleme);
-            }
+            System.out.println(problemes);
+            
             System.out.println("\nCorrigez ces problemes avant de terminer !\n");
             return false;
         }

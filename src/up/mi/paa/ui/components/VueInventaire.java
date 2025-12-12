@@ -17,6 +17,10 @@ import up.mi.paa.service.CalculateurCouts;
 import up.mi.paa.service.GestionnaireReseau;
 import up.mi.paa.ui.StyleUI;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
 /**
  * Panneau latéral gauche : Gère l'affichage des listes et le formulaire d'ajout.
  */
@@ -25,16 +29,14 @@ public class VueInventaire extends VBox implements StyleUI {
     private final VBox conteneurListe = new VBox(10);
     private String ongletActif = "Generateurs";
     
-    // Champs du formulaire
     private TextField champSaisieNom;
     private TextField champSaisieCapacite;
     private ComboBox<TypeConsommation> comboTypeMaison;
     private StackPane conteneurSaisieDynamique;
     private Button boutonAjouter;
     
-    // Références et Callbacks
     private GestionnaireReseau gestionnaire;
-    private Runnable onUpdateRequired; // Pour prévenir l'app principale qu'il faut rafraîchir
+    private Runnable onUpdateRequired;
 
     public VueInventaire() {
         this.setPrefWidth(320);
@@ -51,12 +53,10 @@ public class VueInventaire extends VBox implements StyleUI {
     }
 
     private void construireInterface() {
-        // En-tête
         Label labelEntete = new Label("EXPLORATEUR RÉSEAU");
         labelEntete.setPadding(new Insets(15));
         labelEntete.setStyle("-fx-text-fill: " + TEXTE_SECONDAIRE + "; -fx-font-weight: bold; -fx-font-size: 12px;");
 
-        // Onglets
         HBox onglets = new HBox();
         Button btnGen = creerBoutonOnglet("Générateurs", true);
         Button btnMaison = creerBoutonOnglet("Maisons", false);
@@ -65,14 +65,12 @@ public class VueInventaire extends VBox implements StyleUI {
         btnMaison.setOnAction(e -> changerOnglet("Maisons", btnMaison, btnGen));
         onglets.getChildren().addAll(btnGen, btnMaison);
 
-        // Zone de liste avec scroll
         ScrollPane defilement = new ScrollPane(conteneurListe);
         defilement.setFitToWidth(true);
         defilement.setStyle("-fx-background: " + FOND_PANNEAU + "; -fx-background-color: transparent;");
         VBox.setVgrow(defilement, Priority.ALWAYS);
         conteneurListe.setPadding(new Insets(10));
 
-        // Formulaire bas
         this.getChildren().addAll(labelEntete, onglets, defilement, construireFormulaire());
         mettreAJourEtatFormulaire();
     }
@@ -107,23 +105,59 @@ public class VueInventaire extends VBox implements StyleUI {
         return formulaireBas;
     }
 
-    /**
-     * Met à jour la liste des éléments affichés.
-     */
     public void rafraichirListe(CalculateurCouts calculateur) {
         conteneurListe.getChildren().clear();
         if (gestionnaire == null) return;
 
         if (ongletActif.equals("Generateurs")) {
-            for (Generateur g : gestionnaire.getReseauElectrique().getGenerateurs()) {
+            List<Generateur> listeGen = new ArrayList<>(gestionnaire.getReseauElectrique().getGenerateurs());
+            
+            for (Generateur g : listeGen) {
                 double usage = 0.0;
                 try { usage = calculateur.getSommeDesDemandesElectriques(g, gestionnaire.getReseauElectrique()); } catch (Exception e) {}
                 boolean surcharge = usage > g.getCapaciteMaximale();
                 
                 creerCarte(g.getNom(), g.getCapaciteMaximale() + " kW • Utilisé: " + usage + "kW", 
                            surcharge ? ACCENT_ROUGE : ACCENT_BLEU, null, e -> {
-                    gestionnaire.getReseauElectrique().getConnexions().remove(g);
-                    declencherUpdate();
+                    
+                    try {
+
+                        List<Maison> orphelins = new ArrayList<>(gestionnaire.getReseauElectrique().trouverLesMaisonsDeGenerateur(g));
+
+                        for(Maison m : orphelins) {
+                            gestionnaire.getReseauElectrique().supprimerConnexion(m);
+                        }
+
+                        boolean removed = gestionnaire.getReseauElectrique().getGenerateurs().remove(g);
+                        
+                        if (!removed) {
+                             removed = gestionnaire.getReseauElectrique().getGenerateurs()
+                                     .removeIf(gen -> gen.getNom().equals(g.getNom()));
+                        }
+
+                        if (!removed) {
+                            System.err.println("Erreur critique: Impossible de supprimer le générateur de la liste.");
+                        }
+
+                        List<Generateur> survivants = gestionnaire.getReseauElectrique().getGenerateurs();
+                        if (!survivants.isEmpty()) {
+                            Random rand = new Random();
+                            Generateur nouveauPapa = survivants.get(rand.nextInt(survivants.size()));
+                            
+                            for (Maison m : orphelins) {
+                                try {
+                                    gestionnaire.creerConnexion(nouveauPapa.getNom(), m.getNom());
+                                } catch (Exception ex) {
+                                }
+                            }
+                        }
+
+                        declencherUpdate();
+                        
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        afficherAlerte("Erreur Suppression", ex.getMessage());
+                    }
                 });
             }
         } else {
@@ -144,7 +178,6 @@ public class VueInventaire extends VBox implements StyleUI {
         comboConnect.setMaxWidth(Double.MAX_VALUE);
         comboConnect.setStyle("-fx-background-color: " + FOND_PRINCIPAL + "; -fx-text-base-color: white; -fx-border-color: " + COULEUR_BORDURE + "; -fx-font-size: 10px;");
         
-        // Affichage propre dans la combobox
         comboConnect.setConverter(new StringConverter<Generateur>() {
             @Override public String toString(Generateur g) { return g == null ? "Aucun" : g.getNom() + " (" + g.getCapaciteMaximale() + ")"; }
             @Override public Generateur fromString(String s) { return null; }
@@ -218,7 +251,6 @@ public class VueInventaire extends VBox implements StyleUI {
                 
                 gestionnaire.ajouterOuModifierMaison(nom, type);
                 
-                // Connexion auto au premier générateur (UX)
                 if (!gestionnaire.getReseauElectrique().getGenerateurs().isEmpty()) {
                      Generateur premierGen = gestionnaire.getReseauElectrique().getGenerateurs().get(0);
                      gestionnaire.creerConnexion(premierGen.getNom(), nom);

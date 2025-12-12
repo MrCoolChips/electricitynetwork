@@ -30,6 +30,10 @@ public class CalculateurCouts {
        this.lambda = lambda;
    }
    
+   public int getLambda() {
+	   return lambda;
+   }
+   
    /**
     * Met à jour la valeur de lambda (sévérité de la pénalisation).
     * Utile pour ajuster dynamiquement la pénalité via une interface graphique (ex: Slider)
@@ -113,7 +117,7 @@ public class CalculateurCouts {
     * @return Le taux d'utilisation (ex: 1.0 = 100%, 1.2 = 120%).
     * @throws ArithmeticException Si la capacité du générateur est 0.
     */
-   private double calculerLeTauxDUtilisation(Generateur g, ReseauElectrique reseau) {
+   public double calculerLeTauxDUtilisation(Generateur g, ReseauElectrique reseau) {
        if(g.getCapaciteMaximale() == 0) {
            throw new ArithmeticException("La capacite du generateur " + g.getNom() + " ne peut pas etre 0");
        }

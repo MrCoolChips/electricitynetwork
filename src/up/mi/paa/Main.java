@@ -17,9 +17,10 @@ public class Main {
     	Scanner sc = new Scanner(System.in);
     	int lambda = 10;
     	
-    	if (args.length > 1) {
-            try {
-                lambda = Integer.parseInt(args[1]);
+
+		if (args.length > 0) {
+		    try {
+		    	lambda = Integer.parseInt(args[0]);
             } catch (NumberFormatException e) {
                 System.out.println("Valeur lambda invalide, la valeur par défaut (10) est utilisée.");
             }
