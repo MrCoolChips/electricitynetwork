@@ -54,42 +54,36 @@ public class GestionnaireFichier {
         try (BufferedReader bf = new BufferedReader(new FileReader(f))) {
 
             String line = null;
-            String phase = "generateur";
+            String phase = "generateur"; // Phase attendue : generateur -> maison -> connexion
 
             while ((line = bf.readLine()) != null) {
                 numeroLigne++;
                 
-                // Ignorer les lignes vides (avant trim pour autoriser les lignes blanches)
+                // Ignorer les lignes vides
                 if (line.trim().isEmpty()) {
                     continue;
                 }
 
-                // === ETAPE 1 : Verifier qu'il n'y a pas d'espaces ===
-                if (line.contains(" ") || line.contains("\t")) {
-                    throw new IOException(formatErreur(numeroLigne, "Espaces interdits", 
-                        "La ligne contient des espaces ou tabulations. Format attendu sans espace."));
-                }
-
-                // === ETAPE 2 : Verifier que la ligne se termine par un point ===
-                if (!line.endsWith(".")) {
-                    throw new IOException(formatErreur(numeroLigne, "Point manquant", 
-                        "Chaque ligne doit se terminer par un point '.'"));
-                }
-
-                // === ETAPE 3 : Identifier et valider le mot-cle ===
+                // === ETAPE 1 : Identifier le mot-cle pour verifier l'ORDRE en premier ===
                 String motCle = extraireMotCle(line);
                 
+                // Si pas de mot-cle identifiable, verifier la syntaxe de base
                 if (motCle == null) {
+                    // Verifier si c'est un probleme de point manquant
+                    if (!line.contains(".")) {
+                        throw new IOException(formatErreur(numeroLigne, "Point manquant", 
+                            "Chaque ligne doit se terminer par un point '.'"));
+                    }
                     throw new IOException(formatErreur(numeroLigne, "Syntaxe invalide", 
                         "Format attendu: mot_cle(param1,param2). avec mot_cle = generateur, maison ou connexion"));
                 }
 
-                // Verifier si le mot-cle est valide
-                if (!motCle.equals(MOT_CLE_GENERATEUR) && 
-                    !motCle.equals(MOT_CLE_MAISON) && 
-                    !motCle.equals(MOT_CLE_CONNEXION)) {
-                    
-                    // Essayer de suggerer le bon mot-cle
+                // === ETAPE 2 : Verifier si le mot-cle est valide ===
+                boolean motCleValide = motCle.equals(MOT_CLE_GENERATEUR) || 
+                                       motCle.equals(MOT_CLE_MAISON) || 
+                                       motCle.equals(MOT_CLE_CONNEXION);
+                
+                if (!motCleValide) {
                     String suggestion = suggererMotCle(motCle);
                     String message = "Mot-cle '" + motCle + "' non reconnu.";
                     if (suggestion != null) {
@@ -98,7 +92,64 @@ public class GestionnaireFichier {
                     throw new IOException(formatErreur(numeroLigne, "Mot-cle invalide", message));
                 }
 
-                // === ETAPE 4 : Verifier la structure des parentheses ===
+                // === ETAPE 3 : Verifier l'ORDRE (avant toute autre validation) ===
+                // Regle 1: Tous les generateurs doivent etre definis AVANT les maisons
+                // Regle 2: Toutes les maisons doivent etre definies APRES les generateurs et AVANT les connexions
+                // Regle 3: Toutes les connexions doivent etre definies APRES les maisons
+                
+                if (motCle.equals(MOT_CLE_GENERATEUR)) {
+                    if (phase.equals("maison")) {
+                        throw new IOException(formatErreur(numeroLigne, "Ordre invalide", 
+                            "Tous les generateurs doivent etre definis AVANT les maisons."));
+                    }
+                    if (phase.equals("connexion")) {
+                        throw new IOException(formatErreur(numeroLigne, "Ordre invalide", 
+                            "Tous les generateurs doivent etre definis AVANT les connexions."));
+                    }
+                    // On reste en phase generateur
+                    
+                } else if (motCle.equals(MOT_CLE_MAISON)) {
+                    if (phase.equals("generateur") && reseau.getReseauElectrique().getGenerateurs().isEmpty()) {
+                        throw new IOException(formatErreur(numeroLigne, "Ordre invalide", 
+                            "Toutes les maisons doivent etre definies APRES les generateurs. " +
+                            "Aucun generateur n'a ete defini."));
+                    }
+                    if (phase.equals("connexion")) {
+                        throw new IOException(formatErreur(numeroLigne, "Ordre invalide", 
+                            "Toutes les maisons doivent etre definies AVANT les connexions."));
+                    }
+                    phase = "maison"; // Transition vers phase maison
+                    
+                } else if (motCle.equals(MOT_CLE_CONNEXION)) {
+                    if (phase.equals("generateur") && reseau.getReseauElectrique().getGenerateurs().isEmpty()) {
+                        throw new IOException(formatErreur(numeroLigne, "Ordre invalide", 
+                            "Toutes les connexions doivent etre definies APRES les generateurs. " +
+                            "Aucun generateur n'a ete defini."));
+                    }
+                    if (phase.equals("generateur") || 
+                        (phase.equals("maison") && reseau.getReseauElectrique().getMaisons().isEmpty())) {
+                        throw new IOException(formatErreur(numeroLigne, "Ordre invalide", 
+                            "Toutes les connexions doivent etre definies APRES les maisons. " +
+                            "Aucune maison n'a ete definie."));
+                    }
+                    phase = "connexion"; // Transition vers phase connexion
+                }
+
+                // === ETAPE 4 : Maintenant valider la SYNTAXE de la ligne ===
+                
+                // Verifier les espaces
+                if (line.contains(" ") || line.contains("\t")) {
+                    throw new IOException(formatErreur(numeroLigne, "Espaces interdits", 
+                        "La ligne contient des espaces ou tabulations. Format attendu sans espace."));
+                }
+
+                // Verifier le point final
+                if (!line.endsWith(".")) {
+                    throw new IOException(formatErreur(numeroLigne, "Point manquant", 
+                        "Chaque ligne doit se terminer par un point '.'"));
+                }
+
+                // Verifier la structure des parentheses
                 int indiceOuvrante = line.indexOf('(');
                 int indiceFermante = line.lastIndexOf(')');
                 
@@ -135,15 +186,9 @@ public class GestionnaireFichier {
                         "Les parametres ne peuvent pas etre vides"));
                 }
 
-                // === ETAPE 6 : Verifier l'ordre et traiter selon le mot-cle ===
+                // === ETAPE 6 : Traiter selon le mot-cle ===
                 try {
                     if (motCle.equals(MOT_CLE_GENERATEUR)) {
-                        if (phase.equals("maison") || phase.equals("connexion")) {
-                            throw new IOException(formatErreur(numeroLigne, "Ordre invalide", 
-                                "Les generateurs doivent etre definis AVANT les maisons et connexions"));
-                        }
-                        phase = "generateur";
-                        
                         // Valider la capacite
                         double capacite;
                         try {
@@ -161,12 +206,6 @@ public class GestionnaireFichier {
                         reseau.ajouterOuModifierGenerateur(param1, capacite);
 
                     } else if (motCle.equals(MOT_CLE_MAISON)) {
-                        if (phase.equals("connexion")) {
-                            throw new IOException(formatErreur(numeroLigne, "Ordre invalide", 
-                                "Les maisons doivent etre definies AVANT les connexions"));
-                        }
-                        phase = "maison";
-                        
                         // Valider le type de consommation
                         TypeConsommation type;
                         try {
@@ -179,9 +218,6 @@ public class GestionnaireFichier {
                         reseau.ajouterOuModifierMaison(param1, type);
 
                     } else if (motCle.equals(MOT_CLE_CONNEXION)) {
-                        phase = "connexion";
-                        
-                        // Verifier que les elements existent
                         reseau.creerConnexion(param1, param2);
                     }
                     
