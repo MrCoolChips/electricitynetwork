@@ -35,6 +35,7 @@ public class Couts {
 		this.surcharge = val;
 	}
 	
+    @Override
 	public String toString() {
 		return String.format("%.2f", coutGlobale) + " (dispersion = " + String.format("%.2f", dispersion) + ", surcharge = " + String.format("%.2f", surcharge) + ")";
 	}

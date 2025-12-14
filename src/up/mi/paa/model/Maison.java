@@ -61,6 +61,7 @@ public class Maison {
      * 
      * @return Une chaine decrivant la maison et sa consommation
      */
+    @Override
     public String toString() {
     	return nom + ": le type de consommation de la maison " + typeConsommation.name() + " et elle consomme " + typeConsommation.demande() + "kW";
     }
@@ -72,6 +73,7 @@ public class Maison {
      * @param o L'objet a comparer
      * @return true si les maisons ont le meme nom, false sinon
      */
+    @Override
     public boolean equals(Object o) {
         if (this == o) { 
         	return true;
@@ -83,5 +85,20 @@ public class Maison {
         
         return nom.equals(((Maison) o).nom.toUpperCase());
     }
+    
+    /**
+     * Calcule le hashCode de cette maison.
+     * Le hashCode doit être cohérent avec {@link #equals(Object)} :
+     * deux maisons considérées égales (même nom, insensible à la casse)
+     * doivent retourner la même valeur, sinon les collections comme HashSet/HashMap
+     * peuvent se comporter de manière incorrecte.
+     *
+     * @return Le hashCode basé sur le nom (déjà normalisé en majuscules)
+     */
+    @Override
+    public int hashCode() {
+        return nom.hashCode();
+    }
+
     
 }

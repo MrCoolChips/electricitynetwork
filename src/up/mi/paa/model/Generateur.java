@@ -52,6 +52,7 @@ public class Generateur {
      * 
      * @return Une chaine decrivant le generateur et sa capacite
      */
+    @Override
     public String toString() {
     	return nom + ": la capacite maximale du générateur est de " + capaciteMaximale + "kW";
     }
@@ -63,6 +64,7 @@ public class Generateur {
      * @param o L'objet a comparer
      * @return true si les generateurs ont le meme nom, false sinon
      */
+    @Override
     public boolean equals(Object o) {
         if (this == o) { 
         	return true;
@@ -74,5 +76,20 @@ public class Generateur {
         
         return nom.equals(((Generateur) o).nom.toUpperCase());
     }
+    
+    /**
+     * Calcule le hashCode de ce générateur.
+     * Le hashCode doit être cohérent avec {@link #equals(Object)} :
+     * deux générateurs considérés égaux (même nom, insensible à la casse)
+     * doivent retourner la même valeur, sinon les collections comme HashSet/HashMap
+     * peuvent se comporter de manière incorrecte.
+     *
+     * @return Le hashCode basé sur le nom (déjà normalisé en majuscules)
+     */
+    @Override
+    public int hashCode() {
+        return nom.hashCode();
+    }
+
     
 }
