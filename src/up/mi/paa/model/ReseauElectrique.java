@@ -228,10 +228,13 @@ public class ReseauElectrique {
      *          (si la maison n'est pas connectee, la methode ne fait rien)
      */
     public void supprimerConnexion(Maison m) {
-
+    	if (m == null) {
+    		return;
+    	}
+    	
         Generateur g = trouverGenerateur(m);
 
-        if (g == null || m == null) {
+        if (g == null) {
             return;
         }
 
