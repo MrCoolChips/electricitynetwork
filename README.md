@@ -143,14 +143,6 @@ connexion(G2,M2).
 │  3 | Fin                                       │
 └────────────────────────────────────────────────┘
 ```
-├────────────────────────────────────────────────┤
-│  1 | Ajouter un generateur                     │
-│  2 | Ajouter une maison                        │
-│  3 | Ajouter une connexion                     │
-│  4 | Supprimer une connexion                   │
-│  5 | Fin                                       │
-└────────────────────────────────────────────────┘
-```
 
 ### Exemples d'Utilisation
 
