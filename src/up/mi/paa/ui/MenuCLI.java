@@ -1,11 +1,17 @@
 package up.mi.paa.ui;
 
+import up.mi.paa.io.GestionnaireFichier;
 import up.mi.paa.service.CalculateurCouts;
 import up.mi.paa.service.GestionnaireReseau;
+import up.mi.paa.service.OptimiseurReseau;
 import up.mi.paa.model.*;
 import up.mi.paa.exception.*;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 /**
@@ -24,23 +30,34 @@ public class MenuCLI {
     private Scanner sc;
     private GestionnaireReseau gestionnaire;
     private CalculateurCouts calculateur;
+    private OptimiseurReseau optimiseur;
     
     /**
-     * Constructeur du menu CLI.
+     * Constructeur du menu CLI pour la partie 1 (mode manuel).
      * 
      * @param sc Le scanner pour lire les entrees utilisateur
+     * @param lambda Le coefficient de penalisation pour le calcul des couts
      */
     public MenuCLI(Scanner sc, int lambda) {
         this.sc = sc;
         this.gestionnaire = new GestionnaireReseau();
         this.calculateur = new CalculateurCouts(lambda);
-        /*
-         * Pour tester le systeme fichier
-        File f = new File("sauvegarde/sauvegarde1.txt");
-        File f2 = new File("sauvegarde/sauvegarde2.txt");
-        gestionnaire.getReseauElectrique().lireFichierReseau(f);
-        gestionnaire.getReseauElectrique().ecrireFichierReseau(f2);
-        */
+        this.optimiseur = new OptimiseurReseau(calculateur);
+    }
+    
+    /**
+     * Constructeur du menu CLI pour la partie 2 (mode fichier).
+     * Permet de charger un reseau existant depuis un fichier.
+     * 
+     * @param sc Le scanner pour lire les entrees utilisateur
+     * @param lambda Le coefficient de penalisation pour le calcul des couts
+     * @param gestionnaire Le gestionnaire de reseau pre-charge depuis le fichier
+     */
+    public MenuCLI(Scanner sc, int lambda, GestionnaireReseau gestionnaire) {
+        this.sc = sc;
+        this.gestionnaire = gestionnaire;
+        this.calculateur = new CalculateurCouts(lambda);
+        this.optimiseur = new OptimiseurReseau(calculateur);
     }
     
     /**
@@ -397,6 +414,164 @@ public class MenuCLI {
         System.out.println("─────────────────────────────────");
         reseau.affichageConnexions();
         System.out.println();
+    }
+
+    // =========================================================================
+    //  PARTIE 2 - MODE FICHIER ET OPTIMISATION
+    // =========================================================================
+
+    /**
+     * Demarre le menu de la partie 2 (mode fichier).
+     * Le reseau a ete charge depuis un fichier et on peut l'optimiser automatiquement.
+     */
+    public void demarrerPartie2() {
+        // Afficher le reseau charge
+        afficherReseau();
+        
+        int choix;
+        while (true) {
+            afficherMenuPartie2();
+            choix = lireChoix();
+            
+            switch (choix) {
+                case 1:
+                    resolutionAutomatique();
+                    break;
+                case 2:
+                    sauvegarderSolution();
+                    break;
+                case 3:
+                    System.out.println("\n" + CYAN + "[INFO]" + RESET + " Au revoir !\n");
+                    return;
+                default:
+                    System.out.println("\n" + ROUGE + "[ERREUR]" + RESET + " Choix invalide ! Veuillez choisir entre 1 et 3.\n");
+            }
+        }
+    }
+
+    /**
+     * Affiche le menu de la partie 2.
+     */
+    private void afficherMenuPartie2() {
+        System.out.println("┌────────────────────────────────────────────────┐");
+        System.out.println("│              MENU PARTIE 2                     │");
+        System.out.println("├────────────────────────────────────────────────┤");
+        System.out.println("│  1 | Resolution automatique                    │");
+        System.out.println("│  2 | Sauvegarder la solution                   │");
+        System.out.println("│  3 | Fin                                       │");
+        System.out.println("└────────────────────────────────────────────────┘");
+        System.out.print("\n> Votre choix : ");
+    }
+
+    /**
+     * Execute la resolution automatique du reseau.
+     * Affiche l'ancien cout, optimise le reseau, affiche le nouveau cout
+     * et les connexions modifiees.
+     */
+    private void resolutionAutomatique() {
+        System.out.println("\n╔════════════════════════════════════════════════╗");
+        System.out.println("║         RESOLUTION AUTOMATIQUE                 ║");
+        System.out.println("╚════════════════════════════════════════════════╝\n");
+
+        ReseauElectrique reseau = gestionnaire.getReseauElectrique();
+        
+        // Sauvegarder les connexions avant optimisation
+        Map<Maison, Generateur> connexionsAvant = new HashMap<>();
+        for (Generateur g : reseau.getGenerateurs()) {
+            List<Maison> maisons = reseau.trouverLesMaisonsDeGenerateur(g);
+            if (maisons != null) {
+                for (Maison m : maisons) {
+                    connexionsAvant.put(m, g);
+                }
+            }
+        }
+
+        // Calculer et afficher l'ancien cout
+        Couts ancienCout = calculateur.calculerCout(reseau);
+        System.out.println(ROUGE + "[AVANT] Cout : " + ancienCout.toString() + RESET);
+
+        // Lancer l'optimisation
+        System.out.println("\n" + JAUNE + "[...] Optimisation en cours (max 3 secondes)..." + RESET + "\n");
+        optimiseur.optimiser(reseau);
+
+        // Calculer et afficher le nouveau cout
+        Couts nouveauCout = calculateur.calculerCout(reseau);
+        System.out.println(VERT + "[APRES] Cout : " + nouveauCout.toString() + RESET);
+
+        // Calculer l'amelioration
+        double amelioration = ancienCout.getCoutGlobale() - nouveauCout.getCoutGlobale();
+        if (amelioration > 0) {
+            System.out.println(VERT + "[GAIN]  Amelioration : -" + String.format("%.2f", amelioration) + RESET);
+        } else if (amelioration == 0) {
+            System.out.println(JAUNE + "[INFO]  Le reseau etait deja optimal !" + RESET);
+        }
+
+        // Afficher les connexions modifiees
+        System.out.println("\n┌────────────────────────────────────────────────┐");
+        System.out.println("│         CONNEXIONS MODIFIEES                   │");
+        System.out.println("└────────────────────────────────────────────────┘");
+
+        List<String> modifications = new ArrayList<>();
+        for (Generateur g : reseau.getGenerateurs()) {
+            List<Maison> maisonsApres = reseau.trouverLesMaisonsDeGenerateur(g);
+            if (maisonsApres != null) {
+                for (Maison m : maisonsApres) {
+                    Generateur ancienGen = connexionsAvant.get(m);
+                    if (ancienGen != null && !ancienGen.equals(g)) {
+                        modifications.add("  " + m.getNom() + " : " + ROUGE + ancienGen.getNom() + RESET 
+                                        + " --> " + VERT + g.getNom() + RESET);
+                    }
+                }
+            }
+        }
+
+        if (modifications.isEmpty()) {
+            System.out.println(JAUNE + "  Aucune connexion modifiee." + RESET);
+        } else {
+            System.out.println("  " + modifications.size() + " connexion(s) modifiee(s) :\n");
+            for (String mod : modifications) {
+                System.out.println(mod);
+            }
+        }
+        System.out.println();
+    }
+
+    /**
+     * Sauvegarde la solution actuelle dans un fichier.
+     * Verifie si le fichier existe deja et demande confirmation.
+     */
+    private void sauvegarderSolution() {
+        System.out.println("\n--- SAUVEGARDER LA SOLUTION ---");
+        System.out.print("> Nom du fichier de sauvegarde : ");
+        String nomFichier = sc.nextLine().trim();
+
+        if (nomFichier.isEmpty()) {
+            System.out.println(ROUGE + "[ERREUR]" + RESET + " Le nom du fichier ne peut pas etre vide.\n");
+            return;
+        }
+
+        // Ajouter l'extension .txt si absente
+        if (!nomFichier.endsWith(".txt")) {
+            nomFichier += ".txt";
+        }
+
+        File fichier = new File(nomFichier);
+
+        // Verifier si le fichier existe deja
+        if (fichier.exists()) {
+            System.out.println(JAUNE + "[ATTENTION]" + RESET + " Le fichier '" + nomFichier + "' existe deja.");
+            System.out.print("> Voulez-vous l'ecraser ? (oui/non) : ");
+            String reponse = sc.nextLine().trim().toLowerCase();
+            
+            if (!reponse.equals("oui") && !reponse.equals("o")) {
+                System.out.println(CYAN + "[INFO]" + RESET + " Sauvegarde annulee.\n");
+                return;
+            }
+        }
+
+        // Sauvegarder le reseau
+        GestionnaireFichier.ecrireFichierReseau(fichier, gestionnaire.getReseauElectrique());
+        System.out.println(VERT + "[OK]" + RESET + " Solution sauvegardee dans '" + nomFichier + "' !\n");
     }
 
 }

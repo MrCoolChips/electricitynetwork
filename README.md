@@ -10,7 +10,7 @@ Application Java en ligne de commande pour la gestion et l'optimisation d'un ré
 
 ## Fonctionnalités
 
-### Gestion du Réseau
+### Partie 1 - Gestion Manuelle du Réseau
 - Ajout et modification de générateurs (nom, capacité en kW)
 - Ajout et modification de maisons (nom, type de consommation)
 - Création de connexions entre générateurs et maisons
@@ -18,7 +18,13 @@ Application Java en ligne de commande pour la gestion et l'optimisation d'un ré
 - Modification de connexions existantes
 - Validation de l'intégrité du réseau
 
-### Analyse et Optimisation
+### Partie 2 - Optimisation Automatique
+- **Chargement depuis fichier** : Import d'un réseau existant
+- **Résolution automatique** : Algorithme d'optimisation (Glouton + Recuit Simulé)
+- **Comparaison des coûts** : Affichage avant/après optimisation avec couleurs
+- **Sauvegarde** : Export de la solution optimisée vers un fichier
+
+### Analyse et Métriques
 - Calcul du coût global du réseau
 - Calcul de la surcharge des générateurs
 - Calcul de la dispersion (équilibrage de charge)
@@ -39,18 +45,24 @@ src/up/mi/paa/
 ├── Main.java                          # Point d'entrée de l'application
 │
 ├── model/                             # Modèle de données
+│   ├── Couts.java                     # Encapsulation des coûts
 │   ├── Generateur.java                # Entité générateur
 │   ├── Maison.java                    # Entité maison
 │   ├── ReseauElectrique.java          # Gestion du réseau
 │   └── TypeConsommation.java          # Énumération des types
 │
-├── service/                           # Logique
-│   └── GestionnaireReseau.java        # CRUD et calculs
+├── service/                           # Logique métier
+│   ├── CalculateurCouts.java          # Calcul des coûts
+│   ├── GestionnaireReseau.java        # CRUD et validation
+│   └── OptimiseurReseau.java          # Algorithme d'optimisation
+│
+├── io/                                # Entrées/Sorties
+│   └── GestionnaireFichier.java       # Lecture/écriture fichiers
 │
 ├── ui/                                # Interface utilisateur
 │   └── MenuCLI.java                   # Menus et dialogues
 │
-└── exception/                         # Exceptions
+└── exception/                         # Exceptions personnalisées
     ├── ConnexionExistanteException.java
     ├── ConnexionIntrouvableException.java
     ├── FormatInvalideException.java
@@ -73,31 +85,64 @@ src/up/mi/paa/
 run.bat
 ```
 
-**Option 2 : Compilation manuelle (Windows)**
+**Option 2 : Compilation manuelle**
 ```bash
 # Compilation
-javac -d bin -encoding UTF-8 src\up\mi\paa\*.java src\up\mi\paa\model\*.java src\up\mi\paa\exception\*.java src\up\mi\paa\service\*.java src\up\mi\paa\ui\*.java
+javac -d bin -encoding UTF-8 src\up\mi\paa\*.java src\up\mi\paa\model\*.java src\up\mi\paa\exception\*.java src\up\mi\paa\service\*.java src\up\mi\paa\ui\*.java src\up\mi\paa\io\*.java
 
-# Exécution
+# Exécution Partie 1 (mode manuel)
 java -cp bin up.mi.paa.Main
+
+# Exécution Partie 2 (mode fichier)
+java -cp bin up.mi.paa.Main <fichier> [lambda]
+java -cp bin up.mi.paa.Main reseau.txt 10
 ```
 
-**Option 3 : Linux/Mac**
-```bash
-# Compilation
-javac -d bin -encoding UTF-8 src/up/mi/paa/*.java src/up/mi/paa/model/*.java src/up/mi/paa/exception/*.java src/up/mi/paa/service/*.java src/up/mi/paa/ui/*.java
+## Format de Fichier
 
-# Exécution
-java -cp bin up.mi.paa.Main
+Le format de fichier utilise une syntaxe Prolog :
+
+```prolog
+generateur(G1,100).
+generateur(G2,80).
+maison(M1,FORTE).
+maison(M2,NORMAL).
+connexion(G1,M1).
+connexion(G2,M2).
 ```
+
+**Règles :**
+- Ordre obligatoire : générateurs → maisons → connexions
+- Noms alphanumériques uniquement
+- Chaque ligne termine par un point `.`
 
 ## Guide d'Utilisation
 
-### Menu Principal
+### Partie 1 - Menu Principal
 
 ```
 ┌────────────────────────────────────────────────┐
 │              MENU PRINCIPAL                    │
+├────────────────────────────────────────────────┤
+│  1 | Ajouter un generateur                     │
+│  2 | Ajouter une maison                        │
+│  3 | Ajouter une connexion                     │
+│  4 | Supprimer une connexion                   │
+│  5 | Fin                                       │
+└────────────────────────────────────────────────┘
+```
+
+### Partie 2 - Menu Optimisation
+
+```
+┌────────────────────────────────────────────────┐
+│              MENU PARTIE 2                     │
+├────────────────────────────────────────────────┤
+│  1 | Resolution automatique                    │
+│  2 | Sauvegarder la solution                   │
+│  3 | Fin                                       │
+└────────────────────────────────────────────────┘
+```
 ├────────────────────────────────────────────────┤
 │  1 | Ajouter un generateur                     │
 │  2 | Ajouter une maison                        │
@@ -227,10 +272,10 @@ L'interface CLI utilise des éléments visuels ASCII pour améliorer l'expérien
 
 ## Améliorations Possibles
 
-- [ ] Sauvegarde et chargement de réseaux
+- [x] Sauvegarde et chargement de réseaux
 - [ ] Export des résultats en CSV/JSON
-- [ ] Interface graphique (JavaFX)
-- [ ] Algorithme d'optimisation automatique
+- [ ] Interface graphique (JavaFX) - en cours
+- [x] Algorithme d'optimisation automatique
 - [ ] Tests unitaires avec JUnit
 
 ## Documentation
@@ -246,11 +291,11 @@ javadoc -d docs -encoding UTF-8 -charset UTF-8 -sourcepath src -subpackages up.m
 
 ```bash
 # 1. Compiler
-javac -encoding UTF-8 -d bin src/up/mi/paa/*.java src/up/mi/paa/model/*.java src/up/mi/paa/service/*.java src/up/mi/paa/ui/*.java src/up/mi/paa/exception/*.java
+javac -encoding UTF-8 -d bin src/up/mi/paa/*.java src/up/mi/paa/model/*.java src/up/mi/paa/service/*.java src/up/mi/paa/ui/*.java src/up/mi/paa/exception/*.java src/up/mi/paa/io/*.java
 
 # 2. Créer le JAR
 cd bin
-jar cfm ReseauElectrique.jar MANIFEST.MF up/mi/paa/*.class up/mi/paa/model/*.class up/mi/paa/service/*.class up/mi/paa/ui/*.class up/mi/paa/exception/*.class
+jar cfm ReseauElectrique.jar MANIFEST.MF up/mi/paa/*.class up/mi/paa/model/*.class up/mi/paa/service/*.class up/mi/paa/ui/*.class up/mi/paa/exception/*.class up/mi/paa/io/*.class
 cd ..
 
 # 3. Lancer
