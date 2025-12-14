@@ -1,0 +1,3 @@
+maiosn(M1,FORTE).
+generateur(G1,100).
+connexion(G1,M1).

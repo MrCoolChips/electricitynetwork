@@ -23,6 +23,16 @@ import up.mi.paa.service.GestionnaireReseau;
  */
 public class GestionnaireFichier {
 
+    // Codes couleur ANSI
+    private static final String RESET = "\033[0m";
+    private static final String ROUGE = "\033[31m";
+    private static final String JAUNE = "\033[33m";
+
+    // Mots-clés valides
+    private static final String MOT_CLE_GENERATEUR = "generateur";
+    private static final String MOT_CLE_MAISON = "maison";
+    private static final String MOT_CLE_CONNEXION = "connexion";
+
     /**
      * Constructeur privé (classe utilitaire).
      */
@@ -30,7 +40,7 @@ public class GestionnaireFichier {
 
     /**
      * Construit un gestionnaire de réseau à partir d'un fichier texte.
-     * * Le fichier doit respecter l'ordre strict : Générateurs -> Maisons -> Connexions.
+     * Le fichier doit respecter l'ordre strict : Générateurs -> Maisons -> Connexions.
      * Tout défaut de format ou d'intégrité des données interrompt la lecture.
      *
      * @param f Le fichier source à lire.
@@ -47,87 +57,242 @@ public class GestionnaireFichier {
             String phase = "generateur";
 
             while ((line = bf.readLine()) != null) {
-            	numeroLigne++;
-                line = line.trim();
+                numeroLigne++;
                 
-                if (line.isEmpty()) {
-                	continue;
+                // Ignorer les lignes vides (avant trim pour autoriser les lignes blanches)
+                if (line.trim().isEmpty()) {
+                    continue;
                 }
 
+                // === ETAPE 1 : Verifier qu'il n'y a pas d'espaces ===
+                if (line.contains(" ") || line.contains("\t")) {
+                    throw new IOException(formatErreur(numeroLigne, "Espaces interdits", 
+                        "La ligne contient des espaces ou tabulations. Format attendu sans espace."));
+                }
+
+                // === ETAPE 2 : Verifier que la ligne se termine par un point ===
+                if (!line.endsWith(".")) {
+                    throw new IOException(formatErreur(numeroLigne, "Point manquant", 
+                        "Chaque ligne doit se terminer par un point '.'"));
+                }
+
+                // === ETAPE 3 : Identifier et valider le mot-cle ===
+                String motCle = extraireMotCle(line);
+                
+                if (motCle == null) {
+                    throw new IOException(formatErreur(numeroLigne, "Syntaxe invalide", 
+                        "Format attendu: mot_cle(param1,param2). avec mot_cle = generateur, maison ou connexion"));
+                }
+
+                // Verifier si le mot-cle est valide
+                if (!motCle.equals(MOT_CLE_GENERATEUR) && 
+                    !motCle.equals(MOT_CLE_MAISON) && 
+                    !motCle.equals(MOT_CLE_CONNEXION)) {
+                    
+                    // Essayer de suggerer le bon mot-cle
+                    String suggestion = suggererMotCle(motCle);
+                    String message = "Mot-cle '" + motCle + "' non reconnu.";
+                    if (suggestion != null) {
+                        message += " Vouliez-vous dire '" + suggestion + "' ?";
+                    }
+                    throw new IOException(formatErreur(numeroLigne, "Mot-cle invalide", message));
+                }
+
+                // === ETAPE 4 : Verifier la structure des parentheses ===
+                int indiceOuvrante = line.indexOf('(');
+                int indiceFermante = line.lastIndexOf(')');
+                
+                if (indiceOuvrante == -1) {
+                    throw new IOException(formatErreur(numeroLigne, "Parenthese manquante", 
+                        "Parenthese ouvrante '(' manquante apres '" + motCle + "'"));
+                }
+                
+                if (indiceFermante == -1 || indiceFermante < indiceOuvrante) {
+                    throw new IOException(formatErreur(numeroLigne, "Parenthese manquante", 
+                        "Parenthese fermante ')' manquante ou mal placee"));
+                }
+
+                // Verifier que le point est juste apres la parenthese fermante
+                if (indiceFermante != line.length() - 2) {
+                    throw new IOException(formatErreur(numeroLigne, "Syntaxe invalide", 
+                        "Le point '.' doit etre immediatement apres la parenthese fermante ')'"));
+                }
+
+                // === ETAPE 5 : Extraire et valider les parametres ===
+                String contenu = line.substring(indiceOuvrante + 1, indiceFermante);
+                String[] params = contenu.split(",");
+
+                if (params.length != 2) {
+                    throw new IOException(formatErreur(numeroLigne, "Parametres invalides", 
+                        "Exactement 2 parametres requis, separes par une virgule. Trouve: " + params.length));
+                }
+
+                String param1 = params[0].trim().toUpperCase();
+                String param2 = params[1].trim().toUpperCase();
+
+                if (param1.isEmpty() || param2.isEmpty()) {
+                    throw new IOException(formatErreur(numeroLigne, "Parametre vide", 
+                        "Les parametres ne peuvent pas etre vides"));
+                }
+
+                // === ETAPE 6 : Verifier l'ordre et traiter selon le mot-cle ===
                 try {
-	                if (line.startsWith("generateur(")) {
-	                    if (phase.equals("maison") || phase.equals("connexion")) {
-	                        throw new IOException("Ordre invalide : définition de générateur après maison/connexion.");
-	                    }
-	                    phase = "generateur";
-	                    
-	                    String[] info = verifierFormat(line);
-	                    if (info == null) {
-	                    	throw new IOException("Format incorrect.");
-	                    }
-	                    
-	                    String nom = info[0].trim().toUpperCase();
-	                    String capaciteStr = info[1].trim();
-	
-                        double capacite = Double.parseDouble(capaciteStr);
-                        reseau.ajouterOuModifierGenerateur(nom, capacite);
-	
-	                } else if (line.startsWith("maison(")) {
-	                    if (phase.equals("connexion")) {
-	                        throw new IOException("Ordre invalide : définition de maison après connexion.");
-	                    }
-	                    phase = "maison";
-	                    
-	                    String[] info = verifierFormat(line);
-	                    if (info == null) {
-	                    	throw new IOException("Format incorrect.");
-	                    }
-	                    
-	                    String nom = info[0].trim().toUpperCase();
-	                    String typeStr = info[1].trim().toUpperCase();
-	
-                        TypeConsommation type = TypeConsommation.valueOf(typeStr);
-                        reseau.ajouterOuModifierMaison(nom, type);
-	
-	                } else if (line.startsWith("connexion(")) {
-	                    phase = "connexion";
-	                    
-	                    String[] info = verifierFormat(line);
-	                    if (info == null) {
-	                    	throw new IOException("Format incorrect.");
-	                    }
-	
-	                    String nom1 = info[0].trim().toUpperCase();
-	                    String nom2 = info[1].trim().toUpperCase();
-	
-	                    reseau.creerConnexion(nom1, nom2);
-	                }
-                } catch (NumberFormatException e) {
-                    throw new IOException("Capacité non numérique : " + e.getMessage());
-                } catch (IllegalArgumentException e) {
-                    throw new IOException("Type de consommation inconnu : " + e.getMessage());
+                    if (motCle.equals(MOT_CLE_GENERATEUR)) {
+                        if (phase.equals("maison") || phase.equals("connexion")) {
+                            throw new IOException(formatErreur(numeroLigne, "Ordre invalide", 
+                                "Les generateurs doivent etre definis AVANT les maisons et connexions"));
+                        }
+                        phase = "generateur";
+                        
+                        // Valider la capacite
+                        double capacite;
+                        try {
+                            capacite = Double.parseDouble(param2);
+                        } catch (NumberFormatException e) {
+                            throw new IOException(formatErreur(numeroLigne, "Capacite invalide", 
+                                "'" + params[1] + "' n'est pas un nombre valide"));
+                        }
+                        
+                        if (capacite <= 0) {
+                            throw new IOException(formatErreur(numeroLigne, "Capacite invalide", 
+                                "La capacite doit etre un nombre positif. Trouve: " + capacite));
+                        }
+                        
+                        reseau.ajouterOuModifierGenerateur(param1, capacite);
+
+                    } else if (motCle.equals(MOT_CLE_MAISON)) {
+                        if (phase.equals("connexion")) {
+                            throw new IOException(formatErreur(numeroLigne, "Ordre invalide", 
+                                "Les maisons doivent etre definies AVANT les connexions"));
+                        }
+                        phase = "maison";
+                        
+                        // Valider le type de consommation
+                        TypeConsommation type;
+                        try {
+                            type = TypeConsommation.valueOf(param2);
+                        } catch (IllegalArgumentException e) {
+                            throw new IOException(formatErreur(numeroLigne, "Type invalide", 
+                                "'" + param2 + "' n'est pas un type valide. Utilisez: BASSE, NORMAL ou FORTE"));
+                        }
+                        
+                        reseau.ajouterOuModifierMaison(param1, type);
+
+                    } else if (motCle.equals(MOT_CLE_CONNEXION)) {
+                        phase = "connexion";
+                        
+                        // Verifier que les elements existent
+                        reseau.creerConnexion(param1, param2);
+                    }
+                    
                 } catch (Exception e) {
-                    throw new IOException(e.getMessage());
+                    if (e.getMessage().contains("Ligne")) {
+                        throw new IOException(e.getMessage());
+                    }
+                    throw new IOException(formatErreur(numeroLigne, "Erreur", e.getMessage()));
                 }
             }
             
+            // Validation finale du reseau
             String problems = reseau.verifierValiditeReseau();
             if (problems.length() != 0) {
-            	throw new Exception(problems);
+                System.err.println(JAUNE + "[VALIDATION]" + RESET + " Problemes detectes dans le reseau :");
+                System.err.println(problems);
+                return null;
             }
 
         } catch (FileNotFoundException e) {
-            System.err.println("[Erreur IO] Fichier introuvable : " + e.getMessage());
+            System.err.println(ROUGE + "[ERREUR]" + RESET + " Fichier introuvable : " + f.getPath());
             return null;
         } catch (IOException e) {
-            System.err.println("[Erreur Format] Problème à la ligne " + numeroLigne + " : " + e.getMessage());
+            System.err.println(e.getMessage());
             return null;
         } catch (Exception e) {
-            System.err.println("[Erreur Système] Exception inattendue : " + e.getMessage());
+            System.err.println(ROUGE + "[ERREUR]" + RESET + " Exception inattendue : " + e.getMessage());
             return null;
         }
 
         return reseau;
+    }
+
+    /**
+     * Extrait le mot-cle d'une ligne (avant la parenthese ouvrante).
+     * 
+     * @param ligne La ligne a analyser
+     * @return Le mot-cle en minuscules, ou null si pas de parenthese
+     */
+    private static String extraireMotCle(String ligne) {
+        int indiceParenthese = ligne.indexOf('(');
+        if (indiceParenthese <= 0) {
+            return null;
+        }
+        return ligne.substring(0, indiceParenthese).toLowerCase();
+    }
+
+    /**
+     * Suggere un mot-cle valide basé sur la similarité.
+     * 
+     * @param motCle Le mot-cle invalide saisi
+     * @return Une suggestion ou null
+     */
+    private static String suggererMotCle(String motCle) {
+        String motCleLower = motCle.toLowerCase();
+        
+        // Verifier si ca ressemble a "generateur"
+        if (motCleLower.startsWith("gen") || motCleLower.contains("gener") || 
+            motCleLower.contains("gene") || calculerSimilarite(motCleLower, MOT_CLE_GENERATEUR) > 0.5) {
+            return MOT_CLE_GENERATEUR;
+        }
+        
+        // Verifier si ca ressemble a "maison"
+        if (motCleLower.startsWith("mai") || motCleLower.contains("mais") || 
+            motCleLower.contains("aison") || calculerSimilarite(motCleLower, MOT_CLE_MAISON) > 0.5) {
+            return MOT_CLE_MAISON;
+        }
+        
+        // Verifier si ca ressemble a "connexion"
+        if (motCleLower.startsWith("con") || motCleLower.contains("connex") || 
+            motCleLower.contains("nexion") || calculerSimilarite(motCleLower, MOT_CLE_CONNEXION) > 0.5) {
+            return MOT_CLE_CONNEXION;
+        }
+        
+        return null;
+    }
+
+    /**
+     * Calcule un score de similarité simple entre deux chaines.
+     * 
+     * @param s1 Premiere chaine
+     * @param s2 Deuxieme chaine
+     * @return Score entre 0 et 1
+     */
+    private static double calculerSimilarite(String s1, String s2) {
+        int maxLen = Math.max(s1.length(), s2.length());
+        if (maxLen == 0) return 1.0;
+        
+        int matchCount = 0;
+        int minLen = Math.min(s1.length(), s2.length());
+        
+        for (int i = 0; i < minLen; i++) {
+            if (s1.charAt(i) == s2.charAt(i)) {
+                matchCount++;
+            }
+        }
+        
+        return (double) matchCount / maxLen;
+    }
+
+    /**
+     * Formate un message d'erreur avec numero de ligne et details.
+     * 
+     * @param ligne Numero de la ligne
+     * @param type Type d'erreur
+     * @param message Description de l'erreur
+     * @return Message formate
+     */
+    private static String formatErreur(int ligne, String type, String message) {
+        return ROUGE + "[ERREUR]" + RESET + " Ligne " + ligne + " - " + 
+               JAUNE + type + RESET + " : " + message;
     }
 
     /**
@@ -195,12 +360,12 @@ public class GestionnaireFichier {
                 pw.println(ligne);
             }
             
-            System.out.println("Sauvegarde réussie : " + f.getName());
+            System.out.println("Sauvegarde reussie : " + f.getName());
 
         } catch (FileNotFoundException e) {
-            System.err.println("[Erreur IO] Fichier inaccessible : " + e.getMessage());
+            System.err.println(ROUGE + "[ERREUR]" + RESET + " Fichier inaccessible : " + e.getMessage());
         } catch (IOException e) {
-            System.err.println("[Erreur IO] Échec de l'écriture : " + e.getMessage());
+            System.err.println(ROUGE + "[ERREUR]" + RESET + " Echec de l'ecriture : " + e.getMessage());
         }
     }
 }
