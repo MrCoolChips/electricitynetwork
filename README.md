@@ -367,38 +367,21 @@ La complexité spatiale totale est donc O(n + g).
 
 ## Références et Sources
 
-### Fondements Théoriques du Recuit Simulé
+### Recuit Simulé
 
-**Kirkpatrick, S., Gelatt, C. D., & Vecchi, M. P. (1983)**. "Optimization by Simulated Annealing". *Science*, 220(4598), 671-680.
-Article fondateur introduisant le recuit simulé comme méthode d'optimisation combinatoire, par analogie avec le processus physique de recuit des métaux. Cette publication a reçu plus de 40 000 citations et constitue une référence incontournable du domaine.
+Wikipédia. Recuit simulé. Wikipédia, l’encyclopédie libre. https://fr.wikipedia.org/wiki/Recuit_simul%C3%A9
 
-**Metropolis, N., Rosenbluth, A. W., Rosenbluth, M. N., Teller, A. H., & Teller, E. (1953)**. "Equation of State Calculations by Fast Computing Machines". *The Journal of Chemical Physics*, 21(6), 1087-1092.
-Article originel introduisant l'algorithme de Metropolis dans le contexte de la simulation Monte Carlo, dont le recuit simulé est une adaptation.
+Recuit simulé. LIRIS – CNRS. https://perso.liris.cnrs.fr/pierre-edouard.portier/teaching_2015_2016/ia/sima/sima.html
 
-**Geman, S., & Geman, D. (1984)**. "Stochastic Relaxation, Gibbs Distributions, and the Bayesian Restoration of Images". *IEEE Transactions on Pattern Analysis and Machine Intelligence*, 6(6), 721-741.
-Démonstration des conditions de convergence du recuit simulé vers l'optimum global.
+Wanabilini. Sur la route de l’optimum : recuit simulé pour le TSP. Medium. https://medium.com/wanabilini/sur-la-route-de-loptimum-recuit-simul%C3%A9-pour-le-tsp-9cb037e74979
 
-### Algorithmes Gloutons et Bin Packing
+### Algorithmes Gloutons
 
-**Johnson, D. S. (1974)**. "Approximation algorithms for combinatorial problems". *Journal of Computer and System Sciences*, 9(3), 256-278.
-Analyse théorique des heuristiques pour le Bin Packing, incluant First-Fit Decreasing.
+LABRI. Problème de Bin Packing. Département d’informatique, Université de Bordeaux. https://dept-info.labri.fr/ENSEIGNEMENT/projet2/supports/Bin-Packing/probleme-bin-packing.pdf
 
-**Coffman, E. G., Garey, M. R., & Johnson, D. S. (1996)**. "Approximation algorithms for bin packing: A survey". In *Approximation Algorithms for NP-hard Problems*, PWS Publishing Co.
-État de l'art sur les algorithmes d'approximation pour le Bin Packing.
+Wikipédia. Algorithme glouton. Wikipédia, l’encyclopédie libre. https://fr.wikipedia.org/wiki/Algorithme_glouton
 
-**Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2009)**. *Introduction to Algorithms* (3rd ed.). MIT Press.
-Ouvrage de référence en algorithmique, notamment le chapitre 16 sur les algorithmes gloutons.
-
-### Théorie de la Complexité
-
-**Garey, M. R., & Johnson, D. S. (1979)**. *Computers and Intractability: A Guide to the Theory of NP-Completeness*. W. H. Freeman.
-Ouvrage de référence sur la théorie de la NP-complétude, démontrant notamment la NP-difficulté du Bin Packing.
-
-### Ressources Complémentaires
-
-- Wikipedia - Simulated Annealing : https://en.wikipedia.org/wiki/Simulated_annealing
-- Wikipedia - Bin Packing Problem : https://en.wikipedia.org/wiki/Bin_packing_problem
-- Wikipedia - Assignment Problem : https://en.wikipedia.org/wiki/Assignment_problem
+Wikipédia. Problème de Bin Packing. Wikipédia, l’encyclopédie libre. https://fr.wikipedia.org/wiki/Probl%C3%A8me_de_bin_packing
 
 ---
 
