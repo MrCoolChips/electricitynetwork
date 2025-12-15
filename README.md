@@ -134,235 +134,205 @@ La **diversité des mouvements** constitue également un avantage de notre appro
 
 ## Description de l'Algorithme
 
-### Pseudo-code Détaillé et Commenté
+### Pseudo-code
 
 ```
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ALGORITHME : Optimisation par Construction Gloutonne et Recuit Simulé
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ENTRÉES :
-    S = (M, G, C)    Un réseau électrique avec M maisons, G générateurs, C connexions
-    λ                Coefficient de pénalisation de la surcharge (entier positif)
-    T_max            Durée maximale d'exécution en millisecondes
+    S = (M, G, C)    Réseau électrique
+    λ                Coefficient de pénalisation
+    T_max            Durée maximale (ms)
 
 SORTIE :
-    S*               Le réseau avec une configuration C* optimisée
+    S*               Réseau avec configuration optimisée
 
-──────────────────────────────────────────────────────────────────────────────────
-PHASE 1 : CONSTRUCTION GLOUTONNE (Heuristique Best-Fit Decreasing)
-──────────────────────────────────────────────────────────────────────────────────
-│
-│   ┌─────────────────────────────────────────────────────────────────────────┐
-│   │ ÉTAPE 1.1 : Tri des maisons par consommation décroissante              │
-│   └─────────────────────────────────────────────────────────────────────────┘
-│
-│       M_triées ← Trier(M, par consommation décroissante)
-│
-│       // JUSTIFICATION : Placer d'abord les éléments les plus contraignants
-│       // (fortes consommations) réduit les risques de mauvaises affectations
-│       // en fin de construction. Cette stratégie est prouvée efficace pour
-│       // le Bin Packing (garantie à 11/9 × OPT + 6/9).
-│       //
-│       // Exemple d'ordonnancement :
-│       //   Avant : [M1(NORMAL), M2(BASSE), M3(FORTE), M4(FORTE)]
-│       //   Après : [M3(FORTE), M4(FORTE), M1(NORMAL), M2(BASSE)]
-│       //            40 kW      40 kW       20 kW        10 kW
-│
-│   ┌─────────────────────────────────────────────────────────────────────────┐
-│   │ ÉTAPE 1.2 : Initialisation des connexions                              │
-│   └─────────────────────────────────────────────────────────────────────────┘
-│
-│       C ← ∅
-│
-│       // On reconstruit entièrement les connexions pour garantir
-│       // une solution cohérente issue de la stratégie gloutonne.
-│
-│   ┌─────────────────────────────────────────────────────────────────────────┐
-│   │ ÉTAPE 1.3 : Affectation gloutonne de chaque maison                     │
-│   └─────────────────────────────────────────────────────────────────────────┘
-│
-│       POUR CHAQUE maison m DANS M_triées FAIRE
-│       │
-│       │   // Variables de recherche du meilleur générateur
-│       │   g_best ← null
-│       │   cout_min ← +∞
-│       │
-│       │   // Évaluation de tous les générateurs candidats
-│       │   POUR CHAQUE générateur g DANS G FAIRE
-│       │   │
-│       │   │   // Simulation de l'affectation
-│       │   │   C' ← C ∪ {(m, g)}
-│       │   │
-│       │   │   // Évaluation du coût résultant
-│       │   │   cout_candidat ← CalculerCoût(S avec C')
-│       │   │
-│       │   │   // Mise à jour si amélioration
-│       │   │   SI cout_candidat < cout_min ALORS
-│       │   │       cout_min ← cout_candidat
-│       │   │       g_best ← g
-│       │   │   FIN SI
-│       │   │
-│       │   FIN POUR
-│       │
-│       │   // Affectation définitive au meilleur générateur trouvé
-│       │   C ← C ∪ {(m, g_best)}
-│       │
-│       FIN POUR
-│
-│   // À ce stade, toutes les maisons sont connectées et la solution
-│   // obtenue est généralement de bonne qualité (90-95% de l'optimal)
-│   // mais peut être améliorée par la phase suivante.
-│
-──────────────────────────────────────────────────────────────────────────────────
-PHASE 2 : AMÉLIORATION PAR RECUIT SIMULÉ (Métaheuristique)
-──────────────────────────────────────────────────────────────────────────────────
-│
-│   ┌─────────────────────────────────────────────────────────────────────────┐
-│   │ ÉTAPE 2.1 : Initialisation des paramètres                              │
-│   └─────────────────────────────────────────────────────────────────────────┘
-│
-│       // Sauvegarde de la meilleure solution rencontrée
-│       S_best ← S
-│       cout_best ← CalculerCoût(S)
-│
-│       // Paramètres du recuit simulé
-│       T ← 100.0          // Température initiale (contrôle l'exploration)
-│       α ← 0.999          // Facteur de refroidissement géométrique
-│       t_start ← TempsActuel()
-│
-│       // REMARQUE SUR LES PARAMÈTRES :
-│       // - T élevée (100) : forte probabilité d'accepter des dégradations
-│       // - α proche de 1 (0.999) : refroidissement lent favorisant l'exploration
-│       // - Ces valeurs sont issues de l'expérimentation sur nos instances
-│
-│   ┌─────────────────────────────────────────────────────────────────────────┐
-│   │ ÉTAPE 2.2 : Boucle principale du recuit simulé                         │
-│   └─────────────────────────────────────────────────────────────────────────┘
-│
-│       TANT QUE (TempsActuel() - t_start) < T_max FAIRE
-│       │
-│       │   ┌─────────────────────────────────────────────────────────────────┐
-│       │   │ ÉTAPE 2.2.1 : Gestion du réchauffage                           │
-│       │   └─────────────────────────────────────────────────────────────────┘
-│       │
-│       │   SI T < 0.001 ALORS
-│       │       T ← 10.0    // Réchauffage pour relancer l'exploration
-│       │   FIN SI
-│       │
-│       │   // Le réchauffage permet de sortir d'éventuels bassins
-│       │   // d'attraction sous-optimaux après convergence locale.
-│       │
-│       │   ┌─────────────────────────────────────────────────────────────────┐
-│       │   │ ÉTAPE 2.2.2 : Génération d'une solution voisine                │
-│       │   └─────────────────────────────────────────────────────────────────┘
-│       │
-│       │   // Choix probabiliste du type de mouvement
-│       │   // 40% échanges, 60% déplacements (ratio empirique)
-│       │
-│       │   SI Random() < 0.4 ALORS
-│       │   │
-│       │   │   // MOUVEMENT TYPE A : Échange de deux maisons
-│       │   │   // Permet des réorganisations plus profondes
-│       │   │
-│       │   │   m1 ← ChoisirAuHasard(M)
-│       │   │   m2 ← ChoisirAuHasard(M)
-│       │   │   g1 ← GénérateurDe(m1)
-│       │   │   g2 ← GénérateurDe(m2)
-│       │   │
-│       │   │   SI g1 ≠ g2 ALORS
-│       │   │       // Échange : m1 passe sur g2, m2 passe sur g1
-│       │   │       S' ← Échanger(S, m1, g1, m2, g2)
-│       │   │   FIN SI
-│       │   │
-│       │   SINON
-│       │   │
-│       │   │   // MOUVEMENT TYPE B : Déplacement d'une maison
-│       │   │   // Mouvement élémentaire plus fréquent
-│       │   │
-│       │   │   m ← ChoisirAuHasard(M)
-│       │   │   g_ancien ← GénérateurDe(m)
-│       │   │   g_nouveau ← ChoisirAuHasard(G)
-│       │   │
-│       │   │   SI g_ancien ≠ g_nouveau ALORS
-│       │   │       S' ← Déplacer(S, m, g_ancien, g_nouveau)
-│       │   │   FIN SI
-│       │   │
-│       │   FIN SI
-│       │
-│       │   ┌─────────────────────────────────────────────────────────────────┐
-│       │   │ ÉTAPE 2.2.3 : Critère d'acceptation de Metropolis              │
-│       │   └─────────────────────────────────────────────────────────────────┘
-│       │
-│       │   // Calcul de la variation de coût
-│       │   Δ ← CalculerCoût(S') - CalculerCoût(S)
-│       │
-│       │   // Application du critère de Metropolis
-│       │   // - Si Δ < 0 : amélioration → acceptation systématique
-│       │   // - Si Δ ≥ 0 : dégradation → acceptation probabiliste
-│       │   //
-│       │   // La probabilité d'acceptation exp(-Δ/T) décroît avec :
-│       │   //   - L'augmentation de Δ (grandes dégradations moins acceptées)
-│       │   //   - La diminution de T (système plus "rigide" à basse température)
-│       │
-│       │   SI Δ < 0 OU Random() < exp(-Δ / T) ALORS
-│       │   │
-│       │   │   // Acceptation de la nouvelle configuration
-│       │   │   S ← S'
-│       │   │
-│       │   │   // Mise à jour de la meilleure solution connue
-│       │   │   SI CalculerCoût(S) < cout_best ALORS
-│       │   │       S_best ← S
-│       │   │       cout_best ← CalculerCoût(S)
-│       │   │   FIN SI
-│       │   │
-│       │   FIN SI
-│       │
-│       │   ┌─────────────────────────────────────────────────────────────────┐
-│       │   │ ÉTAPE 2.2.4 : Refroidissement                                  │
-│       │   └─────────────────────────────────────────────────────────────────┘
-│       │
-│       │   T ← T × α
-│       │
-│       │   // Décroissance géométrique de la température
-│       │   // Après k itérations : T_k = T_0 × α^k
-│       │   // Exemple : T_0 = 100, α = 0.999
-│       │   //   - k = 1000 : T ≈ 36.8
-│       │   //   - k = 5000 : T ≈ 0.67
-│       │   //   - k = 10000 : T ≈ 0.005
-│       │
-│       FIN TANT QUE
-│
-│   ┌─────────────────────────────────────────────────────────────────────────┐
-│   │ ÉTAPE 2.3 : Retour de la meilleure solution                            │
-│   └─────────────────────────────────────────────────────────────────────────┘
-│
-│       RETOURNER S_best
-│
-│       // IMPORTANT : On retourne S_best et non S car la dernière
-│       // configuration visitée n'est pas nécessairement la meilleure
-│       // (acceptation de dégradations possibles jusqu'à la fin).
-│
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 1 : CONSTRUCTION GLOUTONNE
+
+    M_triées ← Trier(M, par consommation décroissante)
+    C ← ∅
+
+    POUR CHAQUE maison m DANS M_triées FAIRE
+        g_best ← null
+        cout_min ← +∞
+
+        POUR CHAQUE générateur g DANS G FAIRE
+            C' ← C ∪ {(m, g)}
+            cout_candidat ← CalculerCoût(S avec C')
+
+            SI cout_candidat < cout_min ALORS
+                cout_min ← cout_candidat
+                g_best ← g
+            FIN SI
+        FIN POUR
+
+        C ← C ∪ {(m, g_best)}
+    FIN POUR
+
+PHASE 2 : RECUIT SIMULÉ
+
+    S_best ← S
+    cout_best ← CalculerCoût(S)
+    T ← 100.0
+    α ← 0.999
+    t_start ← TempsActuel()
+
+    TANT QUE (TempsActuel() - t_start) < T_max FAIRE
+
+        SI T < 0.001 ALORS
+            T ← 10.0
+        FIN SI
+
+        SI Random() < 0.4 ALORS
+            m1 ← ChoisirAuHasard(M)
+            m2 ← ChoisirAuHasard(M)
+            g1 ← GénérateurDe(m1)
+            g2 ← GénérateurDe(m2)
+
+            SI g1 ≠ g2 ALORS
+                S' ← Échanger(S, m1, g1, m2, g2)
+            FIN SI
+        SINON
+            m ← ChoisirAuHasard(M)
+            g_ancien ← GénérateurDe(m)
+            g_nouveau ← ChoisirAuHasard(G)
+
+            SI g_ancien ≠ g_nouveau ALORS
+                S' ← Déplacer(S, m, g_ancien, g_nouveau)
+            FIN SI
+        FIN SI
+
+        Δ ← CalculerCoût(S') - CalculerCoût(S)
+
+        SI Δ < 0 OU Random() < exp(-Δ / T) ALORS
+            S ← S'
+
+            SI CalculerCoût(S) < cout_best ALORS
+                S_best ← S
+                cout_best ← CalculerCoût(S)
+            FIN SI
+        FIN SI
+
+        T ← T × α
+
+    FIN TANT QUE
+
+    RETOURNER S_best
 ```
 
-### Explication du Critère de Metropolis
+---
 
-Le critère de Metropolis constitue le mécanisme central permettant au recuit simulé d'échapper aux optima locaux. Son fonctionnement repose sur une analogie avec la physique statistique.
+### Explication Ligne par Ligne
 
-Lors d'une transition d'une configuration S vers une configuration S', la probabilité d'acceptation est définie par :
+#### Phase 1 : Construction Gloutonne
 
-```
-P(acceptation) = min(1, exp(-Δ/T))
-```
+**`M_triées ← Trier(M, par consommation décroissante)`**
 
-où Δ = Coût(S') - Coût(S) représente la variation de la fonction objectif.
+Les maisons sont triées par consommation décroissante (FORTE 40kW, puis NORMAL 20kW, puis BASSE 10kW). Cette stratégie, connue sous le nom de Best-Fit Decreasing, place d'abord les éléments les plus contraignants. Cela réduit les risques de mauvaises affectations en fin de construction car les "gros" éléments sont placés quand il reste le plus de choix possibles.
 
-Cette formulation implique que :
-- Toute amélioration (Δ < 0) est systématiquement acceptée
-- Une dégradation (Δ > 0) est acceptée avec une probabilité décroissante selon son amplitude et selon la température
+**`C ← ∅`**
 
-À haute température, le système explore largement l'espace des solutions en acceptant fréquemment des dégradations. À basse température, seules les améliorations sont acceptées, conduisant à une convergence vers un minimum local du bassin d'attraction courant.
+On initialise l'ensemble des connexions à vide. Toutes les connexions seront reconstruites par l'algorithme glouton.
+
+**`POUR CHAQUE maison m DANS M_triées FAIRE`**
+
+On parcourt chaque maison dans l'ordre décroissant de consommation.
+
+**`g_best ← null` et `cout_min ← +∞`**
+
+Variables pour mémoriser le meilleur générateur trouvé et le coût minimal associé. En initialisant cout_min à l'infini, on garantit que le premier générateur évalué sera toujours meilleur.
+
+**`POUR CHAQUE générateur g DANS G FAIRE`**
+
+On teste chaque générateur comme candidat pour accueillir la maison courante.
+
+**`C' ← C ∪ {(m, g)}`**
+
+On simule l'affectation de la maison m au générateur g en créant un ensemble de connexions temporaire C'.
+
+**`cout_candidat ← CalculerCoût(S avec C')`**
+
+On évalue le coût global du réseau si cette affectation était réalisée. Le coût inclut la dispersion et la surcharge pondérée par λ.
+
+**`SI cout_candidat < cout_min ALORS ... FIN SI`**
+
+Si cette affectation produit un coût inférieur au meilleur trouvé jusqu'ici, on met à jour le meilleur générateur et le coût minimal.
+
+**`C ← C ∪ {(m, g_best)}`**
+
+Une fois tous les générateurs évalués, on affecte définitivement la maison au générateur qui minimise le coût. Ce choix est irrévocable dans la phase gloutonne.
+
+À la fin de la Phase 1, toutes les maisons sont connectées. La solution obtenue est généralement de bonne qualité (90-95% de l'optimal) mais peut être améliorée.
+
+---
+
+#### Phase 2 : Recuit Simulé
+
+**`S_best ← S` et `cout_best ← CalculerCoût(S)`**
+
+On sauvegarde la solution gloutonne comme meilleure solution connue. Cette sauvegarde élitiste garantit qu'on ne perdra jamais une bonne solution même si l'exploration dégrade temporairement la configuration courante.
+
+**`T ← 100.0`**
+
+T est la température, paramètre central du recuit simulé. Une température élevée (100) signifie que le système est "chaud" et accepte facilement des dégradations, favorisant l'exploration de l'espace des solutions.
+
+**`α ← 0.999`**
+
+α est le facteur de refroidissement. À chaque itération, la température est multipliée par α. Une valeur proche de 1 (0.999) assure un refroidissement lent, laissant le temps à l'algorithme d'explorer avant de converger.
+
+**`t_start ← TempsActuel()`**
+
+On mémorise l'instant de départ pour contrôler la durée d'exécution.
+
+**`TANT QUE (TempsActuel() - t_start) < T_max FAIRE`**
+
+La boucle principale s'exécute jusqu'à épuisement du temps alloué (T_max = 3000 ms dans notre implémentation).
+
+**`SI T < 0.001 ALORS T ← 10.0 FIN SI`**
+
+Mécanisme de réchauffage : si la température devient trop basse, on la remonte à 10. Cela permet de relancer l'exploration si l'algorithme s'est prématurément figé dans un optimum local.
+
+**`SI Random() < 0.4 ALORS ... SINON ... FIN SI`**
+
+Choix probabiliste du type de mouvement : 40% d'échanges, 60% de déplacements. Cette diversité de mouvements améliore l'exploration.
+
+**Mouvement de type Échange (40% des cas) :**
+
+On sélectionne deux maisons au hasard (m1, m2) et on identifie leurs générateurs respectifs (g1, g2). Si elles sont sur des générateurs différents, on les échange : m1 passe sur g2 et m2 passe sur g1. Ce mouvement permet des réorganisations plus profondes qu'un simple déplacement.
+
+**Mouvement de type Déplacement (60% des cas) :**
+
+On sélectionne une maison au hasard (m) et un nouveau générateur au hasard (g_nouveau). Si ce n'est pas le même que l'actuel, on déplace la maison vers ce nouveau générateur. C'est le mouvement élémentaire de base.
+
+**`Δ ← CalculerCoût(S') - CalculerCoût(S)`**
+
+Δ (delta) représente la variation de coût entre la nouvelle configuration S' et la configuration actuelle S. Si Δ < 0, la nouvelle solution est meilleure. Si Δ > 0, elle est pire.
+
+**`SI Δ < 0 OU Random() < exp(-Δ / T) ALORS`**
+
+C'est le critère de Metropolis, cœur du recuit simulé :
+- Si Δ < 0 (amélioration) : on accepte toujours
+- Si Δ > 0 (dégradation) : on accepte avec probabilité exp(-Δ/T)
+
+La probabilité exp(-Δ/T) décroît quand Δ augmente (grandes dégradations moins acceptées) et quand T diminue (système plus rigide à basse température). Ce mécanisme permet d'échapper aux optima locaux en acceptant temporairement des solutions moins bonnes.
+
+**`S ← S'`**
+
+On adopte la nouvelle configuration.
+
+**`SI CalculerCoût(S) < cout_best ALORS S_best ← S ... FIN SI`**
+
+Si la solution acceptée est la meilleure jamais rencontrée, on la sauvegarde. Cela garantit que le résultat final sera au moins aussi bon que la meilleure solution intermédiaire.
+
+**`T ← T × α`**
+
+Refroidissement géométrique : la température diminue progressivement. Après k itérations : T_k = T_0 × α^k. Par exemple avec T_0 = 100 et α = 0.999 : après 1000 itérations T ≈ 36.8, après 5000 itérations T ≈ 0.67.
+
+**`RETOURNER S_best`**
+
+On retourne la meilleure solution trouvée (et non la dernière visitée, qui peut être moins bonne à cause des dégradations acceptées).
+
+---
 
 ### Optimisations Techniques Implémentées
 
@@ -605,7 +575,17 @@ connexion(G2,M2).
 
 ## Guide d'Utilisation
 
-### Partie 1 - Menu Principal
+---
+
+### PARTIE 1 : Mode Manuel (Interface Interactive)
+
+Le mode manuel se lance sans arguments :
+
+```bash
+java -cp bin up.mi.paa.Main
+```
+
+#### Menu Principal
 
 ```
 ┌────────────────────────────────────────────────┐
@@ -619,19 +599,7 @@ connexion(G2,M2).
 └────────────────────────────────────────────────┘
 ```
 
-### Partie 2 - Menu Optimisation
-
-```
-┌────────────────────────────────────────────────┐
-│              MENU PARTIE 2                     │
-├────────────────────────────────────────────────┤
-│  1 | Resolution automatique                    │
-│  2 | Sauvegarder la solution                   │
-│  3 | Fin                                       │
-└────────────────────────────────────────────────┘
-```
-
-### Exemples d'Utilisation
+#### Exemples d'Utilisation - Partie 1
 
 **1. Ajouter un générateur**
 ```
@@ -658,9 +626,9 @@ Types de consommation: BASSE, NORMAL, FORTE
 [OK] Connexion supprimee !
 ```
 
-### Menu d'Évaluation
+#### Menu d'Évaluation
 
-Après validation du réseau, accédez aux fonctionnalités d'analyse :
+Après validation du réseau (option 5), vous accédez aux fonctionnalités d'analyse :
 
 ```
 ┌────────────────────────────────────────────────┐
@@ -672,6 +640,58 @@ Après validation du réseau, accédez aux fonctionnalités d'analyse :
 │  4 | Fin                                       │
 └────────────────────────────────────────────────┘
 ```
+
+---
+
+### PARTIE 2 : Mode Fichier (Optimisation Automatique)
+
+Le mode fichier se lance avec le chemin du fichier en argument :
+
+```bash
+java -cp bin up.mi.paa.Main <chemin_fichier> [lambda]
+
+# Exemple
+java -cp bin up.mi.paa.Main reseau.txt 10
+```
+
+Le paramètre `lambda` (optionnel, défaut = 10) correspond au coefficient de pénalisation de la surcharge.
+
+#### Menu Optimisation
+
+```
+┌────────────────────────────────────────────────┐
+│              MENU PARTIE 2                     │
+├────────────────────────────────────────────────┤
+│  1 | Resolution automatique                    │
+│  2 | Sauvegarder la solution                   │
+│  3 | Fin                                       │
+└────────────────────────────────────────────────┘
+```
+
+#### Exemples d'Utilisation - Partie 2
+
+**1. Résolution automatique**
+
+L'option 1 applique l'algorithme d'optimisation (Glouton + Recuit Simulé) et affiche les coûts avant et après :
+
+```
+[INFO] Optimisation en cours...
+[OK] Optimisation terminee !
+
+Cout avant optimisation : 4.56
+Cout apres optimisation : 0.14
+```
+
+**2. Sauvegarder la solution**
+
+L'option 2 permet d'exporter la solution optimisée vers un fichier :
+
+```
+> Chemin du fichier de sortie : solution.txt
+[OK] Solution sauvegardee dans solution.txt
+```
+
+---
 
 ## Formules de Calcul
 
