@@ -59,8 +59,11 @@ public class GestionnaireFichier {
             while ((line = bf.readLine()) != null) {
                 numeroLigne++;
                 
+                // Supprimer les espaces en debut et fin de ligne
+                line = line.trim();
+                
                 // Ignorer les lignes vides
-                if (line.trim().isEmpty()) {
+                if (line.isEmpty()) {
                     continue;
                 }
 

@@ -1,5 +1,0 @@
-generateur(G2,100).
-generateur(G1,100).
-connexion(G1,M2).
-maison(M2,FORTE).
-
