@@ -1,10 +1,4 @@
 @echo off
-echo ========================================
-echo   Gestionnaire Reseau Electrique - GUI
-echo ========================================
-echo.
-
-:: Compilation
 echo [1/2] Compilation en cours...
 javac -d bin -cp bin src/up/mi/paa/model/*.java
 javac -d bin -cp bin src/up/mi/paa/exception/*.java
@@ -25,6 +19,8 @@ echo.
 
 :: Lancement
 echo [2/2] Lancement du GUI...
+@echo off
 java --module-path libs/windows/lib --add-modules javafx.controls,javafx.fxml -cp bin up.mi.paa.ui.gui.ReseauElectriqueUI
+@echo off
 
 pause
