@@ -2,7 +2,7 @@ package up.mi.paa;
 
 import up.mi.paa.io.GestionnaireFichier;
 import up.mi.paa.service.GestionnaireReseau;
-import up.mi.paa.ui.MenuCLI;
+import up.mi.paa.ui.cli.MenuCLI;
 
 import java.io.File;
 import java.util.Scanner;
