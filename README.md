@@ -56,14 +56,14 @@ Le paramètre `lambda` (optionnel, défaut = 10) correspond au coefficient de p�
 
 ## Analyse du Problème
 
-### Énoncé Formel
+### Énoncé
 
 Soit un réseau électrique défini par le triplet S = (M, G, C) où :
 - **M** représente l'ensemble des maisons, chacune caractérisée par une consommation électrique appartenant à {BASSE (10 kW), NORMAL (20 kW), FORTE (40 kW)}
 - **G** représente l'ensemble des générateurs, chacun disposant d'une capacité maximale de production
 - **C** représente l'ensemble des connexions, où chaque connexion associe une maison à un unique générateur
 
-L'objectif consiste à déterminer une configuration C* minimisant la fonction de coût :
+L'objectif consiste à déterminer une configuration C minimisant la fonction de coût :
 
 ```
 Coût(C) = Dispersion(C) + λ × Surcharge(C)
@@ -78,11 +78,11 @@ où :
 
 Ce problème appartient à plusieurs familles classiques de l'optimisation combinatoire :
 
-**Problème d'affectation généralisé** : Chaque maison doit être affectée à exactement un générateur, ce qui correspond à la structure classique des problèmes d'affectation où l'on cherche à associer des éléments d'un ensemble A à des éléments d'un ensemble B.
+**Problème d'affectation** : Chaque maison doit être affectée à exactement un générateur, ce qui correspond à la structure classique des problèmes d'affectation où l'on cherche à associer des éléments d'un ensemble A à des éléments d'un ensemble B.
 
-**Problème de Bin Packing avec contraintes** : Les générateurs peuvent être vus comme des "conteneurs" de capacité limitée dans lesquels on doit placer des "objets" (les consommations des maisons). Cette analogie est renforcée par la contrainte de capacité.
+**Problème de Bin Packing** : Les générateurs peuvent être vus comme des "conteneurs" de capacité limitée dans lesquels on doit placer des "objets" (les consommations des maisons). Cette analogie est renforcée par la contrainte de capacité.
 
-**Problème d'équilibrage de charge (Load Balancing)** : La composante de dispersion dans la fonction de coût traduit un objectif d'équilibrage entre les générateurs, similaire aux problèmes de répartition de charge entre serveurs.
+**Problème d'équilibrage de charge** : La composante de dispersion dans la fonction de coût traduit un objectif d'équilibrage entre les générateurs, similaire aux problèmes de répartition de charge entre serveurs.
 
 ### Complexité Combinatoire
 
@@ -92,7 +92,7 @@ L'espace des solutions possibles croît exponentiellement avec la taille du prob
 |Espace de recherche| = g^n
 ```
 
-Cette croissance exponentielle rend l'énumération exhaustive impraticable dès que n dépasse quelques dizaines d'éléments. Le problème de Bin Packing, auquel notre problème est apparenté, est connu pour être **NP-difficile** (Garey & Johnson, 1979), ce qui justifie le recours à des méthodes approchées.
+Cette croissance exponentielle rend l'énumération de toutes les solutions impraticable dès que n dépasse quelques dizaines d'éléments. ce problème est donc **NP-difficile**, ce qui justifie le recours à des méthodes approchées.
 
 ---
 
@@ -102,21 +102,21 @@ Cette croissance exponentielle rend l'énumération exhaustive impraticable dès
 
 Face à un problème d'optimisation combinatoire NP-difficile, trois grandes familles d'approches peuvent être considérées :
 
-**Les méthodes exactes** (Branch and Bound, Programmation Linéaire en Nombres Entiers) garantissent l'obtention de la solution optimale mais présentent une complexité temporelle exponentielle dans le pire cas. Elles nécessitent généralement l'utilisation de solveurs externes spécialisés (CPLEX, Gurobi) et deviennent impraticables pour des instances de grande taille.
+**Les méthodes exactes** (Programmation Linéaire en Nombres Entiers) garantissent l'obtention de la solution optimale mais présentent une complexité temporelle exponentielle dans le pire cas. impraticables pour des instances de grande taille.
 
-**Les heuristiques constructives** (algorithmes gloutons) construisent une solution de manière incrémentale en effectuant à chaque étape un choix localement optimal. Ces méthodes sont rapides et simples à implémenter mais ne garantissent pas l'optimalité globale et peuvent rester bloquées dans des solutions de qualité médiocre.
+**Les heuristiques constructives** (algorithmes gloutons) construisent une solution de manière incrémentale en effectuant à chaque étape un choix localement optimal. Ces méthodes sont rapides et simples à implémenter mais ne garantissent pas l'optimalité globale et peuvent rester bloquées dans un optimum local.
 
-**Les métaheuristiques** (Recuit Simulé, Algorithmes Génétiques, Recherche Tabou) explorent l'espace des solutions de manière plus sophistiquée, permettant d'échapper aux optima locaux. Elles offrent un compromis entre qualité de la solution et temps de calcul.
+**Les métaheuristiques** (Recuit Simulé, Algorithmes Génétiques) explorent l'espace des solutions de manière plus sophistiquée, permettant d'échapper aux optima locaux. Elles offrent un compromis entre qualité de la solution et temps de calcul.
 
 ### Choix Retenu : Hybridation Glouton + Recuit Simulé
 
 Notre approche combine une heuristique constructive avec une métaheuristique d'amélioration. Ce choix se justifie par plusieurs considérations :
 
-**Qualité de l'initialisation** : L'algorithme glouton Best-Fit Decreasing, en triant les maisons par consommation décroissante avant affectation, produit des solutions initiales de bonne qualité. Cette stratégie est connue pour ses bonnes performances sur les problèmes de Bin Packing (Johnson, 1974).
+**Qualité de l'initialisation** : L'algorithme glouton Best-Fit Decreasing (meilleur remplissage par ordre décroissant), en triant les maisons par consommation décroissante avant affectation, produit des solutions initiales de bonne qualité. Cette stratégie est connue pour ses bonnes performances sur les problèmes de Bin Packing (remplissage de sacs).
 
 **Capacité d'échappement** : Le recuit simulé, grâce au critère de Metropolis, peut accepter temporairement des dégradations de la fonction objectif. Cette propriété permet d'explorer des régions de l'espace des solutions inaccessibles par simple descente locale.
 
-**Convergence théorique** : Sous certaines conditions sur le schéma de refroidissement, le recuit simulé converge asymptotiquement vers l'optimum global (Geman & Geman, 1984). Bien que ces conditions ne soient pas toujours réalisables en pratique, l'algorithme tend vers des solutions de très haute qualité.
+**Convergence théorique** : Sous certaines conditions sur le schéma de refroidissement, le recuit simulé converge vers l'optimum global. l'algorithme tend vers des solutions de très haute qualité.
 
 **Simplicité et robustesse** : Comparé à d'autres métaheuristiques comme les algorithmes génétiques, le recuit simulé nécessite peu de paramètres et s'adapte facilement à différentes structures de problèmes.
 
@@ -126,7 +126,7 @@ L'algorithme naïf proposé initialement présente plusieurs limitations que not
 
 L'**initialisation aléatoire** de l'algorithme naïf produit des configurations initiales de qualité variable, potentiellement très éloignées de l'optimum. Notre initialisation gloutonne garantit un point de départ de bonne qualité, réduisant significativement le nombre d'itérations nécessaires pour atteindre une solution satisfaisante.
 
-L'**exploration uniforme** de l'algorithme naïf, qui n'accepte que les améliorations strictes, conduit inévitablement à un blocage dans le premier optimum local rencontré. Le critère de Metropolis du recuit simulé permet au contraire de traverser des "barrières" de coût pour atteindre des bassins d'attraction plus prometteurs.
+L'**exploration uniforme** de l'algorithme naïf, qui n'accepte que les améliorations strictes, conduit inévitablement à un blocage dans le premier optimum local rencontré. Le critère de Metropolis du recuit simulé permet au contraire d'échapper aux optima locaux pour atteindre potentiellement l'optimum globale.
 
 La **diversité des mouvements** constitue également un avantage de notre approche. Là où l'algorithme naïf se limite aux déplacements simples d'une maison vers un autre générateur, nous introduisons des mouvements d'échange permettant de réorganiser simultanément deux affectations.
 
