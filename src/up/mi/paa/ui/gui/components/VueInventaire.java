@@ -24,8 +24,6 @@ import java.util.Random;
 /**
  * Panneau latéral d'inventaire du réseau.
  * Permet de visualiser et gérer les générateurs et maisons.
- * 
- * @author Groupe 10
  */
 public class VueInventaire extends VBox implements StyleUI {
 
@@ -41,20 +39,36 @@ public class VueInventaire extends VBox implements StyleUI {
     private GestionnaireReseau gestionnaire;
     private Runnable onUpdateRequired;
 
+    /**
+     * Constructeur de la vue inventaire.
+     * Initialise le style et les composants graphiques.
+     */
     public VueInventaire() {
         setPrefWidth(320);
         setStyle("-fx-background-color: " + FOND_PANNEAU + "; -fx-border-color: " + COULEUR_BORDURE + "; -fx-border-width: 0 1 0 0;");
         construireInterface();
     }
 
+    /**
+     * Définit le gestionnaire de réseau pour interagir avec le modèle.
+     * @param gestionnaire L'instance du gestionnaire.
+     */
     public void setGestionnaire(GestionnaireReseau gestionnaire) {
         this.gestionnaire = gestionnaire;
     }
 
+    /**
+     * Définit l'action à exécuter lorsqu'une mise à jour de l'interface est requise.
+     * @param callback L'action à exécuter.
+     */
     public void setOnUpdateRequired(Runnable callback) {
         this.onUpdateRequired = callback;
     }
 
+    /**
+     * Construit l'interface utilisateur complète du panneau latéral.
+     * Assemble l'entête, les onglets, la liste défilante et le formulaire.
+     */
     private void construireInterface() {
         Label entete = new Label("EXPLORATEUR RÉSEAU");
         entete.setPadding(new Insets(15));
@@ -68,6 +82,10 @@ public class VueInventaire extends VBox implements StyleUI {
         mettreAJourFormulaire();
     }
 
+    /**
+     * Crée la barre d'onglets pour basculer entre Générateurs et Maisons.
+     * @return HBox contenant les boutons d'onglets.
+     */
     private HBox creerOnglets() {
         HBox onglets = new HBox();
         Button btnGen = creerBoutonOnglet("Générateurs", true);
@@ -80,6 +98,10 @@ public class VueInventaire extends VBox implements StyleUI {
         return onglets;
     }
 
+    /**
+     * Crée la zone de défilement pour la liste des éléments.
+     * @return ScrollPane configuré.
+     */
     private ScrollPane creerScrollPane() {
         ScrollPane scroll = new ScrollPane(conteneurListe);
         scroll.setFitToWidth(true);
@@ -89,6 +111,10 @@ public class VueInventaire extends VBox implements StyleUI {
         return scroll;
     }
 
+    /**
+     * Crée le formulaire d'ajout en bas du panneau.
+     * @return VBox contenant les champs de saisie.
+     */
     private VBox creerFormulaire() {
         VBox formulaire = new VBox(10);
         formulaire.setPadding(new Insets(15));
@@ -119,9 +145,8 @@ public class VueInventaire extends VBox implements StyleUI {
     }
 
     /**
-     * Rafraîchit la liste des éléments affichés.
-     * 
-     * @param calculateur Calculateur pour obtenir les statistiques
+     * Rafraîchit la liste des éléments affichés en fonction de l'onglet actif.
+     * @param calculateur Calculateur pour obtenir les statistiques de consommation.
      */
     public void rafraichirListe(CalculateurCouts calculateur) {
         conteneurListe.getChildren().clear();
@@ -134,6 +159,10 @@ public class VueInventaire extends VBox implements StyleUI {
         }
     }
 
+    /**
+     * Affiche la liste des générateurs sous forme de cartes.
+     * Calcule l'utilisation actuelle pour afficher les surcharges.
+     */
     private void afficherGenerateurs(CalculateurCouts calculateur) {
         for (Generateur g : new ArrayList<>(gestionnaire.getReseauElectrique().getGenerateurs())) {
             double usage = obtenirUsage(calculateur, g);
@@ -141,7 +170,7 @@ public class VueInventaire extends VBox implements StyleUI {
 
             creerCarte(
                 g.getNom(),
-                g.getCapaciteMaximale() + " kW • Utilisé: " + usage + "kW",
+                g.getCapaciteMaximale() + " kW • Utilisé : " + usage + "kW",
                 surcharge ? ACCENT_ROUGE : ACCENT_BLEU,
                 null,
                 e -> supprimerGenerateur(g)
@@ -149,6 +178,10 @@ public class VueInventaire extends VBox implements StyleUI {
         }
     }
 
+    /**
+     * Affiche la liste des maisons sous forme de cartes.
+     * Ajoute un sélecteur pour changer le générateur connecté.
+     */
     private void afficherMaisons() {
         for (Maison m : gestionnaire.getReseauElectrique().getMaisons()) {
             VBox selecteur = creerSelecteurGenerateur(m);
@@ -162,10 +195,15 @@ public class VueInventaire extends VBox implements StyleUI {
         }
     }
 
+    /**
+     * Crée un menu déroulant pour choisir le générateur d'une maison.
+     * @param m La maison concernée.
+     * @return VBox contenant le label et le ComboBox.
+     */
     private VBox creerSelecteurGenerateur(Maison m) {
         VBox boite = new VBox(5);
 
-        Label label = new Label("CONNECTER:");
+        Label label = new Label("CONNECTER À :");
         label.setStyle("-fx-text-fill: " + TEXTE_SECONDAIRE + "; -fx-font-size: 9px; -fx-font-weight: bold;");
 
         ComboBox<Generateur> combo = new ComboBox<>();
@@ -185,6 +223,14 @@ public class VueInventaire extends VBox implements StyleUI {
         return boite;
     }
 
+    /**
+     * Crée une carte visuelle générique pour un élément (Maison ou Générateur).
+     * @param titre Le titre principal (Nom).
+     * @param sousTitre Le sous-titre (Infos).
+     * @param couleur La couleur de l'indicateur.
+     * @param extra Composant supplémentaire optionnel.
+     * @param suppression Action de suppression.
+     */
     private void creerCarte(String titre, String sousTitre, String couleur, javafx.scene.Node extra, javafx.event.EventHandler<javafx.event.ActionEvent> suppression) {
         VBox carte = new VBox(8);
         carte.setPadding(new Insets(10));
@@ -219,27 +265,55 @@ public class VueInventaire extends VBox implements StyleUI {
         conteneurListe.getChildren().add(carte);
     }
 
+	/**
+	 * Ajoute un nouvel élément ou met à jour un élément existant.
+	 * Vérifie les valeurs négatives et gère la logique de mise à jour.
+	 */
     private void ajouterElement() {
         String nom = champNom.getText().trim().toUpperCase();
         if (nom.isEmpty()) return;
 
         try {
             if (ongletActif.equals("Generateurs")) {
-                double cap = champCapacite.getText().isEmpty() ? 60.0 : Double.parseDouble(champCapacite.getText());
-                gestionnaire.ajouterOuModifierGenerateur(nom, cap);
+                String texteCapacite = champCapacite.getText();
+                double capacite = texteCapacite.isEmpty() ? 60.0 : Double.parseDouble(texteCapacite);
+
+                // Vérifier les valeurs négatives
+                if (capacite < 0) {
+                    afficherAlerte("Erreur de Saisie", "La capacité ne peut pas être négative !");
+                    return;
+                }
+
+                gestionnaire.ajouterOuModifierGenerateur(nom, capacite);
+
             } else {
+                
                 TypeConsommation type = comboType.getValue() != null ? comboType.getValue() : TypeConsommation.NORMAL;
+                Maison maisonExistante = gestionnaire.getReseauElectrique().trouverMaison(nom);
+                
                 gestionnaire.ajouterOuModifierMaison(nom, type);
-                connecterAuPremierGenerateur(nom);
+
+                // Connecter au réseau SEULEMENT si c'est une nouvelle maison
+                if (maisonExistante == null) {
+                    connecterAuPremierGenerateur(nom);
+                }
             }
+
             champNom.clear();
             champCapacite.clear();
             notifierMiseAJour();
+
+        } catch (NumberFormatException e) {
+            afficherAlerte("Erreur de Format", "Veuillez entrer un nombre valide pour la capacité.");
         } catch (Exception e) {
             afficherAlerte("Erreur", e.getMessage());
         }
     }
 
+    /**
+     * Connecte automatiquement une nouvelle maison au premier générateur disponible.
+     * @param nomMaison Le nom de la maison à connecter.
+     */
     private void connecterAuPremierGenerateur(String nomMaison) throws Exception {
         List<Generateur> generateurs = gestionnaire.getReseauElectrique().getGenerateurs();
         if (!generateurs.isEmpty()) {
@@ -247,39 +321,72 @@ public class VueInventaire extends VBox implements StyleUI {
         }
     }
 
+    /**
+     * Supprime un générateur du réseau.
+     * Empêche la suppression du dernier générateur s'il reste des maisons.
+     * Redistribue automatiquement les maisons orphelines vers d'autres générateurs.
+     * @param g Le générateur à supprimer.
+     */
     private void supprimerGenerateur(Generateur g) {
         try {
-            List<Maison> orphelins = new ArrayList<>(gestionnaire.getReseauElectrique().trouverLesMaisonsDeGenerateur(g));
-            orphelins.forEach(m -> gestionnaire.getReseauElectrique().supprimerConnexion(m));
+            // 1. VÉRIFICATION : Empêcher la suppression du dernier générateur s'il y a des maisons
+            int numGen = gestionnaire.getReseauElectrique().getGenerateurs().size();
+            boolean maisonExiste = !gestionnaire.getReseauElectrique().getMaisons().isEmpty();
 
-            gestionnaire.getReseauElectrique().getGenerateurs().removeIf(gen -> gen.getNom().equals(g.getNom()));
+            if (numGen <= 1 && maisonExiste) {
+                afficherAlerte("Action Bloquée", 
+                    "Impossible de supprimer le dernier générateur ! Chaque maison doit être connectée à une source d'énergie.\n" +
+                    "Veuillez d'abord supprimer les maisons ou ajouter un nouveau générateur.");
+                return;
+            }
 
-            reassignerOrphelins(orphelins);
-            notifierMiseAJour();
+            // 2. SAUVEGARDE : Identifier les maisons qui vont devenir orphelines
+            List<Maison> orphelines = new ArrayList<>(
+                gestionnaire.getReseauElectrique().trouverLesMaisonsDeGenerateur(g)
+            );
+
+            // 3. SUPPRESSION : Supprimer le générateur du réseau
+            boolean supprimer = gestionnaire.getReseauElectrique().supprimerGenerateur(g);
+
+            if (supprimer) {
+                // 4. REDISTRIBUTION : Connecter les maisons orphelines aux générateurs restants
+                List<Generateur> genRestants = gestionnaire.getReseauElectrique().getGenerateurs();
+                
+                if (!genRestants.isEmpty() && !orphelines.isEmpty()) {
+                    Random rand = new Random();
+                    for (Maison m : orphelines) {
+                        // Choisir un générateur aléatoire
+                        Generateur nouvGen = genRestants.get(rand.nextInt(genRestants.size()));
+                        
+                        // Créer la connexion via le service
+                        gestionnaire.creerConnexion(nouvGen.getNom(), m.getNom());
+                    }
+                }
+                
+                // Mettre à jour l'interface
+                notifierMiseAJour();
+            }
+
         } catch (Exception e) {
-            afficherAlerte("Erreur", e.getMessage());
+            afficherAlerte("Erreur", "Une erreur est survenue lors de la suppression : " + e.getMessage());
         }
     }
 
-    private void reassignerOrphelins(List<Maison> orphelins) {
-        List<Generateur> survivants = gestionnaire.getReseauElectrique().getGenerateurs();
-        if (survivants.isEmpty()) return;
-
-        Random rand = new Random();
-        for (Maison m : orphelins) {
-            try {
-                Generateur g = survivants.get(rand.nextInt(survivants.size()));
-                gestionnaire.creerConnexion(g.getNom(), m.getNom());
-            } catch (Exception ignored) {}
-        }
-    }
-
+    /**
+     * Supprime une maison du réseau et retire ses connexions.
+     * @param m La maison à supprimer.
+     */
     private void supprimerMaison(Maison m) {
         gestionnaire.getReseauElectrique().getMaisons().remove(m);
         gestionnaire.getReseauElectrique().supprimerConnexion(m);
         notifierMiseAJour();
     }
 
+    /**
+     * Change la connexion d'une maison vers un nouveau générateur.
+     * @param m La maison concernée.
+     * @param nouveau Le nouveau générateur cible.
+     */
     private void changerConnexion(Maison m, Generateur nouveau) {
         Generateur ancien = gestionnaire.getReseauElectrique().trouverGenerateur(m);
         if (nouveau != null && nouveau != ancien) {
@@ -296,6 +403,10 @@ public class VueInventaire extends VBox implements StyleUI {
         }
     }
 
+    /**
+     * Gère le changement d'onglet (Générateurs <-> Maisons).
+     * Met à jour le style des boutons et le formulaire.
+     */
     private void changerOnglet(String onglet, Button actif, Button inactif) {
         ongletActif = onglet;
         actif.setStyle("-fx-background-color: " + FOND_CARTE + "; -fx-text-fill: " + ACCENT_BLEU + "; -fx-border-color: " + ACCENT_BLEU + "; -fx-border-width: 0 0 2 0;");
@@ -304,6 +415,10 @@ public class VueInventaire extends VBox implements StyleUI {
         notifierMiseAJour();
     }
 
+    /**
+     * Met à jour les champs du formulaire en fonction de l'onglet actif.
+     * Affiche soit la capacité (Générateur) soit le type (Maison).
+     */
     private void mettreAJourFormulaire() {
         conteneurDynamique.getChildren().clear();
         if (ongletActif.equals("Generateurs")) {
@@ -317,6 +432,12 @@ public class VueInventaire extends VBox implements StyleUI {
         }
     }
 
+    /**
+     * Obtient la demande électrique totale sur un générateur.
+     * @param calc Le calculateur de coûts.
+     * @param g Le générateur.
+     * @return La demande en kW.
+     */
     private double obtenirUsage(CalculateurCouts calc, Generateur g) {
         try {
             return calc.getSommeDesDemandesElectriques(g, gestionnaire.getReseauElectrique());
@@ -325,6 +446,9 @@ public class VueInventaire extends VBox implements StyleUI {
         }
     }
 
+    /**
+     * Crée un bouton stylisé pour la barre d'onglets.
+     */
     private Button creerBoutonOnglet(String texte, boolean actif) {
         Button btn = new Button(texte);
         btn.setMaxWidth(Double.MAX_VALUE);
@@ -337,6 +461,9 @@ public class VueInventaire extends VBox implements StyleUI {
         return btn;
     }
 
+    /**
+     * Crée un champ de texte stylisé.
+     */
     private TextField creerChamp(String invite) {
         TextField tf = new TextField();
         tf.setPromptText(invite);
@@ -344,10 +471,18 @@ public class VueInventaire extends VBox implements StyleUI {
         return tf;
     }
 
+    /**
+     * Notifie l'interface principale qu'une mise à jour est requise.
+     */
     private void notifierMiseAJour() {
         if (onUpdateRequired != null) onUpdateRequired.run();
     }
 
+    /**
+     * Affiche une boîte de dialogue d'information ou d'erreur.
+     * @param titre Le titre de la fenêtre.
+     * @param msg Le message à afficher.
+     */
     private void afficherAlerte(String titre, String msg) {
         Alert alerte = new Alert(Alert.AlertType.INFORMATION);
         alerte.setTitle(titre);

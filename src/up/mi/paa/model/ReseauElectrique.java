@@ -279,4 +279,16 @@ public class ReseauElectrique {
     		}
     	}
     }
+    
+    public boolean supprimerGenerateur(Generateur g) {
+        if (g == null) {
+        	return false;
+        }
+        
+        if (connexions.containsKey(g)) {
+            connexions.remove(g);
+            return true;
+        }
+        return false;
+    }
 }
