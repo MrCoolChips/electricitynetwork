@@ -28,8 +28,7 @@ import java.util.Map;
 /**
  * Vue graphique du réseau électrique.
  * Affiche les générateurs, maisons et leurs connexions de manière interactive.
- * Les noeuds peuvent être déplacés par drag-and-drop.
- * 
+ * Les noeuds peuvent être déplacés par glisser-déposer (drag-and-drop).
  * @author Groupe 10
  */
 public class VueReseau extends Pane implements StyleUI {
@@ -42,6 +41,10 @@ public class VueReseau extends Pane implements StyleUI {
     private final Pane coucheConnexions = new Pane();
     private final Pane coucheNoeuds = new Pane();
 
+    /**
+     * Constructeur de la vue réseau.
+     * Initialise le fond, les couches graphiques et la grille d'arrière-plan.
+     */
     public VueReseau() {
         setStyle("-fx-background-color: " + FOND_PRINCIPAL + ";");
         getChildren().addAll(coucheConnexions, coucheNoeuds);
@@ -49,6 +52,9 @@ public class VueReseau extends Pane implements StyleUI {
         appliquerMasque();
     }
 
+    /**
+     * Applique un masque de découpage pour empêcher les éléments de dépasser des bords du panneau.
+     */
     private void appliquerMasque() {
         Rectangle masque = new Rectangle();
         masque.widthProperty().bind(widthProperty());
@@ -57,10 +63,10 @@ public class VueReseau extends Pane implements StyleUI {
     }
 
     /**
-     * Rafraîchit l'affichage du réseau.
-     * 
-     * @param gestionnaire Le gestionnaire de réseau
-     * @param calculateur  Le calculateur de coûts
+     * Rafraîchit l'affichage complet du réseau.
+     * Redessine les générateurs, les maisons et les câbles.
+     * @param gestionnaire Le gestionnaire de réseau contenant les données.
+     * @param calculateur Le calculateur pour déterminer les surcharges.
      */
     public void rafraichir(GestionnaireReseau gestionnaire, CalculateurCouts calculateur) {
         coucheNoeuds.getChildren().clear();
@@ -77,6 +83,10 @@ public class VueReseau extends Pane implements StyleUI {
         dessinerConnexions(gestionnaire);
     }
 
+    /**
+     * Dessine tous les générateurs sur le panneau.
+     * Applique une couleur rouge en cas de surcharge.
+     */
     private void dessinerGenerateurs(GestionnaireReseau gestionnaire, CalculateurCouts calculateur, double largeur, double hauteur) {
         for (Generateur g : gestionnaire.getReseauElectrique().getGenerateurs()) {
             double demande = obtenirDemande(calculateur, g, gestionnaire);
@@ -93,6 +103,9 @@ public class VueReseau extends Pane implements StyleUI {
         }
     }
 
+    /**
+     * Dessine les maisons connectées autour d'un générateur spécifique (en orbite).
+     */
     private void dessinerMaisonsConnectees(GestionnaireReseau gestionnaire, Generateur g, double[] posGen) {
         List<Maison> maisons = gestionnaire.getReseauElectrique().trouverLesMaisonsDeGenerateur(g);
         int total = maisons.size();
@@ -109,6 +122,9 @@ public class VueReseau extends Pane implements StyleUI {
         }
     }
 
+    /**
+     * Dessine les maisons qui ne sont connectées à aucun générateur.
+     */
     private void dessinerMaisonsOrphelines(GestionnaireReseau gestionnaire, double largeur, double hauteur) {
         for (Maison m : gestionnaire.getReseauElectrique().getMaisons()) {
             if (!noeudsVisuels.containsKey(m)) {
@@ -120,6 +136,9 @@ public class VueReseau extends Pane implements StyleUI {
         }
     }
 
+    /**
+     * Trace les lignes de connexion entre les générateurs et leurs maisons.
+     */
     private void dessinerConnexions(GestionnaireReseau gestionnaire) {
         for (Generateur g : gestionnaire.getReseauElectrique().getGenerateurs()) {
             StackPane noeudGen = noeudsVisuels.get(g);
@@ -135,6 +154,9 @@ public class VueReseau extends Pane implements StyleUI {
         }
     }
 
+    /**
+     * Crée une ligne pointillée stylisée représentant un câble électrique.
+     */
     private Line creerLigneConnexion(StackPane source, StackPane cible) {
         Line ligne = new Line();
         ligne.setStroke(Color.web(TEXTE_SECONDAIRE));
@@ -142,6 +164,7 @@ public class VueReseau extends Pane implements StyleUI {
         ligne.setOpacity(0.3);
         ligne.getStrokeDashArray().addAll(10d, 5d);
 
+        // Liaison dynamique des coordonnées pour suivre le mouvement des noeuds
         ligne.startXProperty().bind(source.layoutXProperty().add(25));
         ligne.startYProperty().bind(source.layoutYProperty().add(25));
         ligne.endXProperty().bind(cible.layoutXProperty().add(18));
@@ -151,12 +174,15 @@ public class VueReseau extends Pane implements StyleUI {
     }
 
     /**
-     * Réorganise le layout en supprimant les positions sauvegardées des maisons.
+     * Réinitialise les positions des maisons pour forcer un recalcul (utile après optimisation).
      */
     public void reorganiserLayout() {
         positions.entrySet().removeIf(e -> e.getKey() instanceof Maison);
     }
 
+    /**
+     * Calcule la demande électrique totale sur un générateur.
+     */
     private double obtenirDemande(CalculateurCouts calc, Generateur g, GestionnaireReseau gest) {
         try {
             return calc.getSommeDesDemandesElectriques(g, gest.getReseauElectrique());
@@ -165,6 +191,9 @@ public class VueReseau extends Pane implements StyleUI {
         }
     }
 
+    /**
+     * Obtient ou génère une position aléatoire pour un élément.
+     */
     private double[] obtenirPosition(Object obj, double largeur, double hauteur) {
         if (positions.containsKey(obj)) {
             return positions.get(obj);
@@ -176,6 +205,9 @@ public class VueReseau extends Pane implements StyleUI {
         return pos;
     }
 
+    /**
+     * Calcule la position d'une maison en orbite autour de son générateur.
+     */
     private double[] obtenirPositionMaison(Maison m, double[] posGen, int index, int total) {
         if (positions.containsKey(m)) {
             return positions.get(m);
@@ -188,6 +220,9 @@ public class VueReseau extends Pane implements StyleUI {
         return pos;
     }
 
+    /**
+     * Crée un noeud visuel (cercle + icône + étiquette) pour un élément du réseau.
+     */
     private StackPane creerNoeud(Object donnee, double[] pos, String couleur, String icone, String nom, String sousTexte, boolean estGenerateur, GestionnaireReseau gestionnaire) {
         int rayon = estGenerateur ? 25 : 18;
 
@@ -202,7 +237,6 @@ public class VueReseau extends Pane implements StyleUI {
         txtIcone.setFont(Font.font("Segoe UI Emoji", FontWeight.BOLD, estGenerateur ? 20 : 14));
 
         StackPane groupeCercle = new StackPane(cercle, txtIcone);
-
         VBox etiquette = creerEtiquette(nom, sousTexte, estGenerateur);
 
         StackPane conteneur = new StackPane(groupeCercle, etiquette);
@@ -214,6 +248,9 @@ public class VueReseau extends Pane implements StyleUI {
         return conteneur;
     }
 
+    /**
+     * Crée l'étiquette textuelle affichée sous le noeud.
+     */
     private VBox creerEtiquette(String nom, String sousTexte, boolean estGenerateur) {
         VBox boite = new VBox(0);
         boite.setAlignment(Pos.CENTER);
@@ -232,6 +269,9 @@ public class VueReseau extends Pane implements StyleUI {
         return boite;
     }
 
+    /**
+     * Configure les événements de souris pour permettre le déplacement des noeuds.
+     */
     private void configurerDragAndDrop(StackPane conteneur, Object donnee, boolean estGenerateur, GestionnaireReseau gestionnaire) {
         final double[] delta = new double[2];
 
@@ -249,6 +289,7 @@ public class VueReseau extends Pane implements StyleUI {
             double oldX = conteneur.getLayoutX();
             double oldY = conteneur.getLayoutY();
 
+            // Calcul de la nouvelle position avec limites (clamping)
             double newX = clamp(e.getSceneX() + delta[0], 20, largeur - 70);
             double newY = clamp(e.getSceneY() + delta[1], 20, hauteur - 70);
 
@@ -256,6 +297,7 @@ public class VueReseau extends Pane implements StyleUI {
             conteneur.setLayoutY(newY);
             positions.put(donnee, new double[]{newX, newY});
 
+            // Si on déplace un générateur, les maisons connectées suivent
             if (estGenerateur && donnee instanceof Generateur) {
                 deplacerMaisonsConnectees((Generateur) donnee, newX - oldX, newY - oldY, gestionnaire);
             }
@@ -264,6 +306,9 @@ public class VueReseau extends Pane implements StyleUI {
         conteneur.setOnMouseReleased(e -> conteneur.setCursor(Cursor.HAND));
     }
 
+    /**
+     * Déplace toutes les maisons connectées à un générateur lors du mouvement de celui-ci.
+     */
     private void deplacerMaisonsConnectees(Generateur g, double dx, double dy, GestionnaireReseau gestionnaire) {
         for (Maison m : gestionnaire.getReseauElectrique().trouverLesMaisonsDeGenerateur(g)) {
             StackPane noeud = noeudsVisuels.get(m);
@@ -277,10 +322,16 @@ public class VueReseau extends Pane implements StyleUI {
         }
     }
 
+    /**
+     * Restreint une valeur entre un minimum et un maximum.
+     */
     private double clamp(double val, double min, double max) {
         return Math.max(min, Math.min(max, val));
     }
 
+    /**
+     * Dessine une grille en arrière-plan pour l'esthétique.
+     */
     private void dessinerGrille(double largeur, double hauteur) {
         Pane grille = new Pane();
         for (int i = 0; i < largeur; i += 40) {

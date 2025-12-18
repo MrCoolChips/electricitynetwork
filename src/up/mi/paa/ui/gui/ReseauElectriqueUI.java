@@ -35,10 +35,18 @@ public class ReseauElectriqueUI extends Application implements StyleUI {
     private VueTopBar vueTopBar;
     private BorderPane root;
 
+    /**
+     * Point d'entrée standard de l'application.
+     * @param args Arguments de la ligne de commande.
+     */
     public static void main(String[] args) {
         launch(args);
     }
 
+    /**
+     * Initialise et affiche la fenêtre principale de l'application.
+     * @param stage La fenêtre principale (Stage).
+     */
     @Override
     public void start(Stage stage) {
         initialiserComposants();
@@ -53,6 +61,9 @@ public class ReseauElectriqueUI extends Application implements StyleUI {
         rafraichirTout();
     }
 
+    /**
+     * Instancie les composants graphiques et applique le style global.
+     */
     private void initialiserComposants() {
         root = new BorderPane();
         root.setStyle("-fx-font-family: " + FONT_MAIN + ";");
@@ -65,6 +76,10 @@ public class ReseauElectriqueUI extends Application implements StyleUI {
         vueInventaire.setGestionnaire(gestionnaire);
     }
 
+    /**
+     * Configure les événements et les actions des boutons.
+     * @param stage La fenêtre principale pour les dialogues de fichiers.
+     */
     private void configurerActions(Stage stage) {
         vueStats.setActionChangementLambda(lambda -> {
             calculateur.setLambda(lambda);
@@ -82,6 +97,9 @@ public class ReseauElectriqueUI extends Application implements StyleUI {
         vueTopBar.setActionExport(() -> exporterFichier(stage));
     }
 
+    /**
+     * Organise la disposition des vues dans le conteneur principal.
+     */
     private void assemblerInterface() {
         root.setTop(vueTopBar);
         root.setCenter(vueReseau);
@@ -89,6 +107,9 @@ public class ReseauElectriqueUI extends Application implements StyleUI {
         root.setLeft(vueInventaire);
     }
 
+    /**
+     * Met à jour toutes les vues avec les données actuelles du réseau.
+     */
     private void rafraichirTout() {
         if (gestionnaire == null) return;
 
@@ -104,6 +125,9 @@ public class ReseauElectriqueUI extends Application implements StyleUI {
         vueInventaire.rafraichirListe(calculateur);
     }
 
+    /**
+     * Exécute l'algorithme d'optimisation dans un thread d'arrière-plan.
+     */
     private void lancerOptimisation() {
         if (gestionnaire == null || gestionnaire.getReseauElectrique().getMaisons().isEmpty()) {
             afficherAlerte("Info", "Le réseau est vide, rien à optimiser !");
@@ -135,6 +159,10 @@ public class ReseauElectriqueUI extends Application implements StyleUI {
         new Thread(task).start();
     }
 
+    /**
+     * Ouvre une boîte de dialogue pour importer un réseau depuis un fichier.
+     * @param stage La fenêtre parente.
+     */
     private void importerFichier(Stage stage) {
         FileChooser fc = new FileChooser();
         fc.setTitle("Importer Réseau");
@@ -161,22 +189,41 @@ public class ReseauElectriqueUI extends Application implements StyleUI {
         }
     }
 
+    /**
+     * Ouvre une boîte de dialogue pour sauvegarder le réseau au format .txt.
+     * @param stage La fenêtre parente.
+     */
     private void exporterFichier(Stage stage) {
         if (gestionnaire == null) return;
 
         FileChooser fc = new FileChooser();
-        fc.setTitle("Sauvegarder");
+        fc.setTitle("Sauvegarder le Réseau");
+        
+        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("Fichiers Texte (*.txt)", "*.txt");
+        fc.getExtensionFilters().add(extFilter);
+        fc.setInitialFileName("reseau.txt");
+
         File fichier = fc.showSaveDialog(stage);
 
         if (fichier != null) {
+            if (!fichier.getName().toLowerCase().endsWith(".txt")) {
+                fichier = new File(fichier.getAbsolutePath() + ".txt");
+            }
+
             try {
                 GestionnaireFichier.ecrireFichierReseau(fichier, gestionnaire.getReseauElectrique());
+                afficherAlerte("Succès", "Réseau sauvegardé avec succès !");
             } catch (Exception e) {
-                afficherAlerte("Erreur", e.getMessage());
+                afficherAlerte("Erreur", "Erreur lors de la sauvegarde : " + e.getMessage());
             }
         }
     }
 
+    /**
+     * Affiche une boîte de dialogue d'information à l'utilisateur.
+     * @param titre Le titre de la fenêtre.
+     * @param message Le message à afficher.
+     */
     private void afficherAlerte(String titre, String message) {
         Alert alerte = new Alert(Alert.AlertType.INFORMATION);
         alerte.setTitle(titre);

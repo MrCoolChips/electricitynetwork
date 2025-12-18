@@ -15,8 +15,7 @@ import java.util.function.Consumer;
 
 /**
  * Panneau de statistiques et contrôles d'optimisation.
- * Affiche les coûts du réseau et permet de lancer l'optimisation.
- * 
+ * Affiche les coûts du réseau (Global, Dispersion, Surcharge) et permet de lancer l'algorithme d'optimisation.
  * @author Groupe 10
  */
 public class VueStatistiques extends VBox implements StyleUI {
@@ -29,18 +28,29 @@ public class VueStatistiques extends VBox implements StyleUI {
     private Runnable actionOptimisation;
     private Consumer<Integer> actionChangementLambda;
 
+    /**
+     * Constructeur du panneau de statistiques.
+     * @param lambdaDefaut La valeur initiale du paramètre Lambda.
+     */
     public VueStatistiques(int lambdaDefaut) {
         configurerStyle();
         selecteurLambda = new Slider(0, 100, lambdaDefaut);
         assemblerComposants(lambdaDefaut);
     }
 
+    /**
+     * Configure le style visuel global du panneau (dimensions, fond, bordures).
+     */
     private void configurerStyle() {
         setPrefWidth(320);
         setPadding(new Insets(20));
         setStyle("-fx-background-color: " + FOND_PANNEAU + "; -fx-border-color: " + COULEUR_BORDURE + "; -fx-border-width: 0 0 0 1;");
     }
 
+    /**
+     * Assemble les différents composants graphiques du panneau.
+     * @param lambdaDefaut La valeur par défaut pour l'affichage du label Lambda.
+     */
     private void assemblerComposants(int lambdaDefaut) {
         Label entete = creerEntete("ANALYSE & OPTIMISATION");
         VBox carteCout = creerCarteCout();
@@ -50,12 +60,18 @@ public class VueStatistiques extends VBox implements StyleUI {
         getChildren().addAll(entete, carteCout, ligneStats, new Separator(), controles);
     }
 
+    /**
+     * Crée un label d'en-tête stylisé.
+     */
     private Label creerEntete(String texte) {
         Label label = new Label(texte);
         label.setStyle("-fx-text-fill: " + TEXTE_SECONDAIRE + "; -fx-font-weight: bold; -fx-font-size: 12px;");
         return label;
     }
 
+    /**
+     * Crée la carte principale affichant le coût global du réseau.
+     */
     private VBox creerCarteCout() {
         VBox carte = new VBox(5);
         carte.setPadding(new Insets(20));
@@ -70,6 +86,9 @@ public class VueStatistiques extends VBox implements StyleUI {
         return carte;
     }
 
+    /**
+     * Crée la ligne contenant les statistiques détaillées (Dispersion et Surcharge).
+     */
     private HBox creerLigneStats() {
         HBox ligne = new HBox(10);
         ligne.getChildren().addAll(
@@ -79,6 +98,9 @@ public class VueStatistiques extends VBox implements StyleUI {
         return ligne;
     }
 
+    /**
+     * Crée une petite boîte affichant une statistique spécifique.
+     */
     private VBox creerBoiteStat(String titre, Label valeur, String couleur) {
         VBox boite = new VBox(5);
         HBox.setHgrow(boite, Priority.ALWAYS);
@@ -94,6 +116,9 @@ public class VueStatistiques extends VBox implements StyleUI {
         return boite;
     }
 
+    /**
+     * Crée la section des contrôles (Slider Lambda et bouton d'optimisation).
+     */
     private VBox creerControles(int lambdaDefaut) {
         VBox controles = new VBox(10);
 
@@ -118,9 +143,8 @@ public class VueStatistiques extends VBox implements StyleUI {
     }
 
     /**
-     * Met à jour l'affichage des statistiques.
-     * 
-     * @param couts Objet contenant les coûts calculés, ou null pour réinitialiser
+     * Met à jour les valeurs affichées (Coût, Dispersion, Surcharge).
+     * @param couts L'objet contenant les résultats du calcul, ou null pour réinitialiser.
      */
     public void mettreAJourStats(Couts couts) {
         if (couts == null) {
@@ -134,6 +158,17 @@ public class VueStatistiques extends VBox implements StyleUI {
         labelSurcharge.setText(String.format("%.3f", couts.getSurcharge()));
     }
 
-    public void setActionOptimisation(Runnable action) { this.actionOptimisation = action; }
-    public void setActionChangementLambda(Consumer<Integer> action) { this.actionChangementLambda = action; }
+    /**
+     * Définit l'action à exécuter lors du clic sur le bouton "Optimiser".
+     */
+    public void setActionOptimisation(Runnable action) {
+        this.actionOptimisation = action;
+    }
+
+    /**
+     * Définit l'action à exécuter lors du changement de la valeur Lambda via le slider.
+     */
+    public void setActionChangementLambda(Consumer<Integer> action) {
+        this.actionChangementLambda = action;
+    }
 }
