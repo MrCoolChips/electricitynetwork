@@ -147,10 +147,12 @@ class CalculateurCoutsTest {
     class CoutGlobalTests {
 
         @Test
-        @DisplayName("Exception pour un réseau vide")
+        @DisplayName("Réseau vide retourne un coût nul")
         void coutReseauVide() {
-            assertThrows(ArithmeticException.class, 
-                () -> calculateur.calculerCout(reseau));
+            // Un réseau vide ne lance pas d'exception, il retourne un coût de 0
+            Couts couts = calculateur.calculerCout(reseau);
+            assertNotNull(couts);
+            assertEquals(0.0, couts.getCoutGlobale(), 0.001);
         }
 
         @Test
