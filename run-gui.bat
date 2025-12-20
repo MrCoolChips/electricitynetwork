@@ -16,6 +16,6 @@ echo.
 
 :: Lancement
 echo [2/2] Lancement du GUI...
-java --module-path libs/windows/lib --add-modules javafx.controls,javafx.fxml -cp bin up.mi.paa.Main --gui
+java --module-path libs/windows/lib --add-modules javafx.controls,javafx.fxml --enable-native-access=javafx.graphics --add-opens=java.base/java.lang=ALL-UNNAMED -cp bin up.mi.paa.Main --gui
 
 pause

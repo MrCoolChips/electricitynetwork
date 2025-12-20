@@ -207,7 +207,13 @@ public class GestionnaireFichier implements StyleCLI {
                         reseau.ajouterOuModifierGenerateur(param1, capacite);
 
                     } else if (motCle.equals(MOT_CLE_MAISON)) {
-                        // Valider le type de consommation
+                        // Valider le type de consommation (doit être en MAJUSCULES)
+                        String typeOriginal = params[1].trim();
+                        if (!typeOriginal.equals(typeOriginal.toUpperCase())) {
+                            throw new IOException(formatErreur(numeroLigne, "Casse invalide", 
+                                "Le type de consommation doit être en MAJUSCULES. Trouvé: '" + typeOriginal + "'"));
+                        }
+                        
                         TypeConsommation type;
                         try {
                             type = TypeConsommation.valueOf(param2);
