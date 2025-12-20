@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import up.mi.paa.exception.*;
 import up.mi.paa.model.Generateur;
-import up.mi.paa.model.Maison;
 import up.mi.paa.model.ReseauElectrique;
 import up.mi.paa.model.TypeConsommation;
 
