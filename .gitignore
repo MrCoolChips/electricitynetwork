@@ -8,6 +8,8 @@ target/
 out/
 .DS_Store
 /bin/
+/libs/
+
 ReseauElectrique.jar
 
 
