@@ -9,6 +9,7 @@ import up.mi.paa.exception.*;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +33,7 @@ public class MenuCLI {
     private final GestionnaireReseau gestionnaire;
     private final CalculateurCouts calculateur;
     private final OptimiseurReseau optimiseur;
+    private String fichierSource = null;
 
     /**
      * Constructeur pour le mode manuel (Partie 1).
@@ -52,12 +54,14 @@ public class MenuCLI {
      * @param sc          Scanner pour les entrées utilisateur
      * @param lambda      Coefficient de pénalisation de la surcharge
      * @param gestionnaire Gestionnaire pré-chargé depuis un fichier
+     * @param fichierSource Chemin du fichier source (pour éviter l'écrasement)
      */
-    public MenuCLI(Scanner sc, int lambda, GestionnaireReseau gestionnaire) {
+    public MenuCLI(Scanner sc, int lambda, GestionnaireReseau gestionnaire, String fichierSource) {
         this.sc = sc;
         this.gestionnaire = gestionnaire;
         this.calculateur = new CalculateurCouts(lambda);
         this.optimiseur = new OptimiseurReseau(calculateur);
+        this.fichierSource = fichierSource;
     }
 
     /**
@@ -130,20 +134,22 @@ public class MenuCLI {
     };
 
     private void afficherBanniere() {
-        System.out.println("\n╔════════════════════════════════════════════════╗");
-        System.out.println("║     GESTIONNAIRE DE RESEAU ELECTRIQUE          ║");
-        System.out.println("╚════════════════════════════════════════════════╝\n");
+        System.out.println();
+        System.out.println("  ╔════════════════════════════════════════════╗");
+        System.out.println("  ║     GESTIONNAIRE DE RESEAU ELECTRIQUE     ║");
+        System.out.println("  ╚════════════════════════════════════════════╝");
+        System.out.println();
     }
 
     private void afficherMenu(String[] lignes) {
-        System.out.println("┌────────────────────────────────────────────────┐");
-        System.out.println("│              " + centrer(lignes[0], 34) + "│");
-        System.out.println("├────────────────────────────────────────────────┤");
+        System.out.println("  ┌────────────────────────────────────────────┐");
+        System.out.println("  │" + centrer(lignes[0], 44) + "│");
+        System.out.println("  ├────────────────────────────────────────────┤");
         for (int i = 1; i < lignes.length; i++) {
-            System.out.println("│  " + completer(lignes[i], 44) + "│");
+            System.out.println("  │  " + completer(lignes[i], 42) + "│");
         }
-        System.out.println("└────────────────────────────────────────────────┘");
-        System.out.print("\n> Votre choix : ");
+        System.out.println("  └────────────────────────────────────────────┘");
+        System.out.print("\n  > Votre choix : ");
     }
 
     private String centrer(String s, int largeur) {
@@ -262,9 +268,10 @@ public class MenuCLI {
     // =========================================================================
 
     private boolean verifierReseau() {
-        System.out.println("\n┌────────────────────────────────────────────────┐");
-        System.out.println("│         VERIFICATION DU RESEAU                 │");
-        System.out.println("└────────────────────────────────────────────────┘");
+        System.out.println();
+        System.out.println("  ╔════════════════════════════════════════════╗");
+        System.out.println("  ║           VERIFICATION DU RESEAU           ║");
+        System.out.println("  ╚════════════════════════════════════════════╝");
 
         String problemes = gestionnaire.verifierValiditeReseau();
         
@@ -321,26 +328,92 @@ public class MenuCLI {
     private void afficherReseau() {
         ReseauElectrique reseau = gestionnaire.getReseauElectrique();
         
-        System.out.println("\n╔════════════════════════════════════════════════╗");
-        System.out.println("║              ETAT DU RESEAU                    ║");
-        System.out.println("╚════════════════════════════════════════════════╝");
-
-        System.out.println("\nMAISONS :");
-        System.out.println("─────────────────────────────────");
-        for (Maison m : reseau.getMaisons()) {
-            System.out.println("  - " + m);
-        }
-
-        System.out.println("\nGENERATEURS :");
-        System.out.println("─────────────────────────────────");
-        for (Generateur g : reseau.getGenerateurs()) {
-            System.out.println("  - " + g);
-        }
-
-        System.out.println("\nCONNEXIONS :");
-        System.out.println("─────────────────────────────────");
-        reseau.affichageConnexions();
         System.out.println();
+        System.out.println("  ╔════════════════════════════════════════════╗");
+        System.out.println("  ║              ETAT DU RESEAU                ║");
+        System.out.println("  ╚════════════════════════════════════════════╝");
+
+        // Trier les maisons par numero
+        List<Maison> maisonsTries = new ArrayList<>(reseau.getMaisons());
+        maisonsTries.sort(comparateurNaturel(Maison::getNom));
+
+        // Trier les generateurs par numero
+        List<Generateur> generateursTries = new ArrayList<>(reseau.getGenerateurs());
+        generateursTries.sort(comparateurNaturel(Generateur::getNom));
+
+        // Calculer la largeur max pour l'alignement
+        int largeurMaxMaison = Math.max(7, maisonsTries.stream().mapToInt(m -> m.getNom().length()).max().orElse(7));
+        int largeurMaxGen = Math.max(4, generateursTries.stream().mapToInt(g -> g.getNom().length()).max().orElse(4));
+
+        System.out.println("\n  MAISONS (" + maisonsTries.size() + ")");
+        System.out.println("  ─────────────────────────────────────────────");
+        for (Maison m : maisonsTries) {
+            String type = formaterType(m.getTypeConsommation());
+            System.out.printf("    %s : %d kW (%s)%n", m.getNom(), m.getConsommation(), type);
+        }
+
+        System.out.println("\n  GENERATEURS (" + generateursTries.size() + ")");
+        System.out.println("  ─────────────────────────────────────────────");
+        for (Generateur g : generateursTries) {
+            double usage = calculateur.getSommeDesDemandesElectriques(g, reseau);
+            boolean surcharge = usage > g.getCapaciteMaximale();
+            String statut = surcharge ? ROUGE + "SURCHARGE" + RESET : VERT + "OK" + RESET;
+            System.out.printf("    %s : %.0f/%.0f kW [%s]%n", g.getNom(), usage, g.getCapaciteMaximale(), statut);
+        }
+
+        System.out.println("\n  CONNEXIONS");
+        System.out.println("  ─────────────────────────────────────────────");
+        for (Generateur g : generateursTries) {
+            List<Maison> maisonsGen = reseau.trouverLesMaisonsDeGenerateur(g);
+            if (maisonsGen != null && !maisonsGen.isEmpty()) {
+                List<Maison> maisonsTriees = new ArrayList<>(maisonsGen);
+                maisonsTriees.sort(comparateurNaturel(Maison::getNom));
+                
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < maisonsTriees.size(); i++) {
+                    if (i > 0) sb.append(", ");
+                    sb.append(maisonsTriees.get(i).getNom());
+                }
+                System.out.printf("    %s -> %s%n", g.getNom(), sb.toString());
+            }
+        }
+        System.out.println();
+    }
+
+    private String formaterType(TypeConsommation type) {
+        switch (type) {
+            case BASSE: return "Basse";
+            case NORMAL: return "Normal";
+            case FORTE: return "Forte";
+            default: return type.name();
+        }
+    }
+
+    private <T> Comparator<T> comparateurNaturel(java.util.function.Function<T, String> extracteur) {
+        return (a, b) -> {
+            String nomA = extracteur.apply(a);
+            String nomB = extracteur.apply(b);
+            
+            // Extraire préfixe et numéro
+            String prefixA = nomA.replaceAll("[0-9]+$", "");
+            String prefixB = nomB.replaceAll("[0-9]+$", "");
+            String numStrA = nomA.substring(prefixA.length());
+            String numStrB = nomB.substring(prefixB.length());
+            
+            int cmpPrefix = prefixA.compareTo(prefixB);
+            if (cmpPrefix != 0) return cmpPrefix;
+            
+            // Comparer les numéros
+            if (numStrA.isEmpty() && numStrB.isEmpty()) return 0;
+            if (numStrA.isEmpty()) return -1;
+            if (numStrB.isEmpty()) return 1;
+            
+            try {
+                return Integer.compare(Integer.parseInt(numStrA), Integer.parseInt(numStrB));
+            } catch (NumberFormatException e) {
+                return numStrA.compareTo(numStrB);
+            }
+        };
     }
 
     // =========================================================================
@@ -348,31 +421,44 @@ public class MenuCLI {
     // =========================================================================
 
     private void resolutionAutomatique() {
-        System.out.println("\n╔════════════════════════════════════════════════╗");
-        System.out.println("║         RESOLUTION AUTOMATIQUE                 ║");
-        System.out.println("╚════════════════════════════════════════════════╝\n");
+        System.out.println();
+        System.out.println("  ╔════════════════════════════════════════════╗");
+        System.out.println("  ║          RESOLUTION AUTOMATIQUE            ║");
+        System.out.println("  ╚════════════════════════════════════════════╝");
 
         ReseauElectrique reseau = gestionnaire.getReseauElectrique();
 
         Map<Maison, Generateur> connexionsAvant = sauvegarderConnexions(reseau);
         Couts ancienCout = calculateur.calculerCout(reseau);
         
-        System.out.println(ROUGE + "[AVANT] Coût : " + ancienCout + RESET);
-        System.out.println("\n" + JAUNE + "[...] Optimisation en cours (max 3 secondes)..." + RESET + "\n");
+        System.out.println("\n  AVANT optimisation");
+        System.out.println("  ─────────────────────────────────────────────");
+        afficherCoutsFormate(ancienCout);
+
+        System.out.println("\n  Optimisation en cours...");
 
         optimiseur.optimiser(reseau);
 
         Couts nouveauCout = calculateur.calculerCout(reseau);
-        System.out.println(VERT + "[APRES] Coût : " + nouveauCout + RESET);
+        System.out.println("  APRES optimisation");
+        System.out.println("  ─────────────────────────────────────────────");
+        afficherCoutsFormate(nouveauCout);
 
         double amelioration = ancienCout.getCoutGlobale() - nouveauCout.getCoutGlobale();
+        System.out.println();
         if (amelioration > 0) {
-            System.out.println(VERT + "[GAIN]  Amélioration : -" + String.format("%.2f", amelioration) + RESET);
-        } else if (amelioration == 0) {
-            System.out.println(JAUNE + "[INFO]  Le réseau était déjà optimal !" + RESET);
+            System.out.println("  " + VERT + "[+] Gain : -" + String.format("%.2f", amelioration) + RESET);
+        } else {
+            System.out.println("  " + CYAN + "[=] Le reseau etait deja optimal" + RESET);
         }
 
         afficherModifications(reseau, connexionsAvant);
+    }
+
+    private void afficherCoutsFormate(Couts c) {
+        System.out.printf("    %-12s : %.4f%n", "Cout global", c.getCoutGlobale());
+        System.out.printf("    %-12s : %.4f%n", "Dispersion", c.getDispersion());
+        System.out.printf("    %-12s : %.4f%n", "Surcharge", c.getSurcharge());
     }
 
     private Map<Maison, Generateur> sauvegarderConnexions(ReseauElectrique reseau) {
@@ -389,57 +475,92 @@ public class MenuCLI {
     }
 
     private void afficherModifications(ReseauElectrique reseau, Map<Maison, Generateur> avant) {
-        System.out.println("\n┌────────────────────────────────────────────────┐");
-        System.out.println("│         CONNEXIONS MODIFIEES                   │");
-        System.out.println("└────────────────────────────────────────────────┘");
-
-        List<String> modifications = new ArrayList<>();
+        // Collecter les modifications
+        List<String[]> modifications = new ArrayList<>();
+        
         for (Generateur g : reseau.getGenerateurs()) {
             List<Maison> maisonsApres = reseau.trouverLesMaisonsDeGenerateur(g);
             if (maisonsApres != null) {
                 for (Maison m : maisonsApres) {
                     Generateur ancienGen = avant.get(m);
                     if (ancienGen != null && !ancienGen.equals(g)) {
-                        modifications.add("  " + m.getNom() + " : " + ROUGE + ancienGen.getNom() + RESET
-                                        + " --> " + VERT + g.getNom() + RESET);
+                        modifications.add(new String[]{m.getNom(), ancienGen.getNom(), g.getNom()});
                     }
                 }
             }
         }
 
+        System.out.println("\n  CONNEXIONS MODIFIEES");
+        System.out.println("  ─────────────────────────────────────────────");
+
         if (modifications.isEmpty()) {
-            System.out.println(JAUNE + "  Aucune connexion modifiée." + RESET);
+            System.out.println("    Aucune modification");
         } else {
-            System.out.println("  " + modifications.size() + " connexion(s) modifiée(s) :\n");
-            modifications.forEach(System.out::println);
+            // Trier par nom de maison
+            modifications.sort((a, b) -> {
+                String numA = a[0].replaceAll("[^0-9]", "");
+                String numB = b[0].replaceAll("[^0-9]", "");
+                if (numA.isEmpty() || numB.isEmpty()) return a[0].compareTo(b[0]);
+                return Integer.compare(Integer.parseInt(numA), Integer.parseInt(numB));
+            });
+
+            // Calculer largeur max pour alignement
+            int largeurMax = modifications.stream().mapToInt(m -> m[0].length()).max().orElse(5);
+
+            System.out.println("    " + modifications.size() + " modification(s) :");
+            System.out.println();
+            for (String[] mod : modifications) {
+                String nomFormate = String.format("%-" + largeurMax + "s", mod[0]);
+                System.out.printf("      %s : %s -> %s%n", nomFormate, mod[1], mod[2]);
+            }
         }
         System.out.println();
     }
 
     private void sauvegarderSolution() {
         System.out.println("\n--- SAUVEGARDER LA SOLUTION ---");
-        System.out.print("> Nom du fichier : ");
-        String nomFichier = sc.nextLine().trim();
+        
+        String nomFichier;
+        File fichier;
+        
+        while (true) {
+            System.out.print("> Nom du fichier : ");
+            nomFichier = sc.nextLine().trim();
 
-        if (nomFichier.isEmpty()) {
-            afficherErreur("Le nom du fichier ne peut pas être vide.");
-            return;
-        }
-
-        if (!nomFichier.endsWith(".txt")) {
-            nomFichier += ".txt";
-        }
-
-        File fichier = new File(nomFichier);
-
-        if (fichier.exists()) {
-            afficherAttention("Le fichier '" + nomFichier + "' existe déjà.");
-            System.out.print("> Écraser ? (oui/non) : ");
-            String reponse = sc.nextLine().trim().toLowerCase();
-            if (!reponse.equals("oui") && !reponse.equals("o")) {
-                afficherInfo("Sauvegarde annulée.");
-                return;
+            if (nomFichier.isEmpty()) {
+                afficherErreur("Le nom du fichier ne peut pas être vide.");
+                continue;
             }
+
+            if (!nomFichier.endsWith(".txt")) {
+                nomFichier += ".txt";
+            }
+
+            fichier = new File(nomFichier);
+
+            // Vérifier si c'est le même fichier que le fichier source
+            if (fichierSource != null) {
+                boolean memeFichier = false;
+                try {
+                    File source = new File(fichierSource);
+                    memeFichier = fichier.getCanonicalPath().equals(source.getCanonicalPath());
+                } catch (Exception e) {
+                    memeFichier = fichier.getName().equalsIgnoreCase(new File(fichierSource).getName());
+                }
+                
+                if (memeFichier) {
+                    afficherErreur("Impossible de sauvegarder sous le meme nom que le fichier source !");
+                    continue;
+                }
+            }
+
+            // Vérifier si le fichier existe déjà
+            if (fichier.exists()) {
+                afficherErreur("Le fichier '" + nomFichier + "' existe deja ! Choisissez un autre nom.");
+                continue;
+            }
+            
+            break;
         }
 
         GestionnaireFichier.ecrireFichierReseau(fichier, gestionnaire.getReseauElectrique());

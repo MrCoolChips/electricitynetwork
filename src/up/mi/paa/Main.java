@@ -84,7 +84,7 @@ public class Main {
             System.out.println(VERT + "[OK]" + RESET + " Reseau charge avec succes !\n");
 
             // Lancer le menu partie 2
-            MenuCLI menu = new MenuCLI(sc, lambda, gestionnaire);
+            MenuCLI menu = new MenuCLI(sc, lambda, gestionnaire, cheminFichier);
             menu.demarrerPartie2();
             
         } else {
@@ -103,8 +103,10 @@ public class Main {
      * Affiche la banniere de l'application.
      */
     private static void afficherBanniere() {
-        System.out.println("\n╔════════════════════════════════════════════════╗");
-        System.out.println("║     GESTIONNAIRE DE RESEAU ELECTRIQUE          ║");
-        System.out.println("╚════════════════════════════════════════════════╝\n");
+        System.out.println();
+        System.out.println("  ╔════════════════════════════════════════════╗");
+        System.out.println("  ║     GESTIONNAIRE DE RESEAU ELECTRIQUE     ║");
+        System.out.println("  ╚════════════════════════════════════════════╝");
+        System.out.println();
     }
 }

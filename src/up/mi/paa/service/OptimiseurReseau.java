@@ -51,7 +51,7 @@ public class OptimiseurReseau {
         executerRecuitSimule(reseau, etat);
         
         appliquerConfiguration(reseau, etat.meilleureConfig);
-        System.out.println("Meilleur coût : " + etat.meilleurCout);
+        System.out.println("\n  \033[32m[OK] Meilleur cout trouve : " + String.format("%.4f", etat.meilleurCout) + "\033[0m\n");
         
         return reseau;
     }
