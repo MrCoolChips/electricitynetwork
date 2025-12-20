@@ -164,7 +164,6 @@ public class VueReseau extends Pane implements StyleUI {
         ligne.setOpacity(0.3);
         ligne.getStrokeDashArray().addAll(10d, 5d);
 
-        // Liaison dynamique des coordonnées pour suivre le mouvement des noeuds
         ligne.startXProperty().bind(source.layoutXProperty().add(25));
         ligne.startYProperty().bind(source.layoutYProperty().add(25));
         ligne.endXProperty().bind(cible.layoutXProperty().add(18));

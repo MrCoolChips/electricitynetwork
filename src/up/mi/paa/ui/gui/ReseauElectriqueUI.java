@@ -196,7 +196,6 @@ public class ReseauElectriqueUI extends Application implements StyleUI {
     private void exporterFichier(Stage stage) {
         if (gestionnaire == null) return;
 
-        // Vérifier la validité du réseau avant export
         String erreurs = gestionnaire.verifierValiditeReseau();
         if (!erreurs.isEmpty()) {
             Alert alerte = new Alert(Alert.AlertType.ERROR);

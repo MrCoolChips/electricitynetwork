@@ -4,80 +4,88 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
- * Represente un reseau electrique compose de generateurs, de maisons
- * et de connexions entre eux.
+ * Représente un réseau électrique composé de générateurs et de maisons.
+ * 
+ * <p>Cette classe gère :
+ * <ul>
+ *   <li>L'inventaire des générateurs et des maisons</li>
+ *   <li>Les connexions entre générateurs et maisons (relation 1-N)</li>
+ *   <li>Les opérations de recherche et de manipulation du réseau</li>
+ * </ul>
+ * 
+ * <p>Chaque maison peut être connectée à au plus un générateur,
+ * tandis qu'un générateur peut alimenter plusieurs maisons.
+ * 
+ * @author Groupe 10
+ * @version 1.0
+ * @see Generateur
+ * @see Maison
  */
 public class ReseauElectrique {
 
-    /**
-     * Map associant chaque generateur a la liste des maisons qu'il alimente.
-     */
-    private Map<Generateur, List<Maison>> connexions;
+    private final Map<Generateur, List<Maison>> connexions;
+    private final List<Maison> maisons;
 
     /**
-     * Liste de toutes les maisons du reseau (connectees ou non).
-     */
-    private List<Maison> maisons;
-
-    /**
-     * Constructeur d'un reseau electrique vide.
+     * Construit un réseau électrique vide.
      */
     public ReseauElectrique() {
-        connexions = new HashMap<>();
-        maisons = new ArrayList<>();
+        this.connexions = new HashMap<>();
+        this.maisons = new ArrayList<>();
     }
 
     /**
-     * Retourne la map des connexions entre generateurs et maisons.
+     * Retourne la map des connexions générateur → maisons.
      *
-     * @return La map associant chaque generateur a la liste de ses maisons
+     * @return la map des connexions (non modifiable recommandé)
      */
     public Map<Generateur, List<Maison>> getConnexions() {
         return connexions;
     }
 
     /**
-     * Retourne la liste de tous les generateurs du reseau.
-     * (Chaque generateur correspond a une cle dans la map.)
+     * Retourne la liste de tous les générateurs du réseau.
      *
-     * @return La liste des generateurs
+     * @return une nouvelle liste contenant tous les générateurs
      */
     public List<Generateur> getGenerateurs() {
         return new ArrayList<>(connexions.keySet());
     }
 
     /**
-     * Retourne la liste de toutes les maisons du reseau.
+     * Retourne la liste de toutes les maisons du réseau.
      *
-     * @return La liste des maisons
+     * @return la liste des maisons
      */
     public List<Maison> getMaisons() {
         return maisons;
     }
 
     /**
-     * Ajoute un generateur au reseau s'il n'existe pas deja.
+     * Ajoute un générateur au réseau s'il n'existe pas déjà.
      *
-     * @param generateur Le generateur a ajouter
+     * @param generateur le générateur à ajouter
+     * @throws IllegalArgumentException si le générateur est null
      */
     public void ajouterGenerateur(Generateur generateur) {
         if (generateur == null) {
-            throw new IllegalArgumentException("Le generateur ne peut pas etre null");
+            throw new IllegalArgumentException("Le générateur ne peut pas être null");
         }
-        // si le generateur n'est pas encore connu, on l'ajoute avec une liste vide de maisons
         connexions.putIfAbsent(generateur, new ArrayList<>());
     }
 
     /**
-     * Ajoute une maison au reseau si elle n'existe pas deja.
+     * Ajoute une maison au réseau si elle n'existe pas déjà.
      *
-     * @param maison La maison a ajouter
+     * @param maison la maison à ajouter
+     * @throws IllegalArgumentException si la maison est null
      */
     public void ajouterMaison(Maison maison) {
         if (maison == null) {
-            throw new IllegalArgumentException("La maison ne peut pas etre null");
+            throw new IllegalArgumentException("La maison ne peut pas être null");
         }
         if (!maisons.contains(maison)) {
             maisons.add(maison);
@@ -85,210 +93,179 @@ public class ReseauElectrique {
     }
 
     /**
-     * Cree une connexion entre une maison et un generateur.
-     * La maison et le generateur doivent deja exister dans le reseau.
-     * Une maison ne peut etre connectee qu'a un seul generateur.
+     * Crée une connexion entre une maison et un générateur.
      *
-     * @param maison      La maison a connecter
-     * @param generateur  Le generateur a connecter
-     * @throws IllegalArgumentException si maison ou generateur est null
-     * @throws IllegalStateException si maison ou generateur n'existe pas dans le reseau
+     * @param maison     la maison à connecter
+     * @param generateur le générateur à connecter
+     * @throws IllegalArgumentException si maison ou générateur est null
+     * @throws IllegalStateException    si la maison ou le générateur n'existe pas dans le réseau
      */
     public void ajouterConnexion(Maison maison, Generateur generateur) {
-
         if (maison == null || generateur == null) {
-            throw new IllegalArgumentException("maison/generateur ne peut pas etre null");
+            throw new IllegalArgumentException("La maison et le générateur ne peuvent pas être null");
         }
-
         if (!maisons.contains(maison)) {
-            throw new IllegalStateException("La maison doit d'abord etre ajoutee au reseau");
+            throw new IllegalStateException("La maison doit d'abord être ajoutée au réseau");
         }
-
         if (!connexions.containsKey(generateur)) {
-            throw new IllegalStateException("Le generateur doit d'abord etre ajoute au reseau");
+            throw new IllegalStateException("Le générateur doit d'abord être ajouté au réseau");
         }
-
         connexions.get(generateur).add(maison);
     }
 
-
     /**
-     * Recherche le generateur qui alimente une maison donnee.
+     * Recherche le générateur qui alimente une maison donnée.
      *
-     * @param m La maison dont on veut connaitre le generateur
-     * @return Le generateur qui alimente cette maison, ou null si aucun
-     *         generateur ne la contient (maison non connectee ou inconnue)
+     * @param maison la maison dont on veut connaître le générateur
+     * @return le générateur alimentant cette maison, ou {@code null} si non connectée
      */
-    public Generateur trouverGenerateur(Maison m) {
-        if (m == null) {
+    public Generateur trouverGenerateur(Maison maison) {
+        if (maison == null) {
             return null;
         }
-        for (Generateur g : connexions.keySet()) {
-            if (connexions.get(g).contains(m)) {
-                return g;
-            }
-        }
-        return null;
+        return connexions.entrySet().stream()
+                .filter(e -> e.getValue().contains(maison))
+                .map(Map.Entry::getKey)
+                .findFirst()
+                .orElse(null);
     }
 
     /**
-     * Recherche un generateur dans le reseau par nom.
+     * Recherche un générateur par son nom.
      *
-     * @param nom Le nom du generateur a rechercher
-     * @return Le generateur trouve ou null s'il n'existe pas
+     * @param nom le nom du générateur
+     * @return le générateur trouvé, ou {@code null} s'il n'existe pas
      */
     public Generateur trouverGenerateur(String nom) {
         if (nom == null) {
             return null;
         }
-        for (Generateur g : connexions.keySet()) {
-            if (nom.equals(g.getNom())) {
-                return g;
-            }
-        }
-        return null;
+        String nomNormalise = nom.toUpperCase().trim();
+        return connexions.keySet().stream()
+                .filter(g -> g.getNom().equals(nomNormalise))
+                .findFirst()
+                .orElse(null);
     }
 
     /**
-     * Recherche une maison dans le reseau par nom.
+     * Recherche une maison par son nom.
      *
-     * @param nom Le nom de la maison a rechercher
-     * @return La maison trouvee ou null si elle n'existe pas
+     * @param nom le nom de la maison
+     * @return la maison trouvée, ou {@code null} si elle n'existe pas
      */
     public Maison trouverMaison(String nom) {
         if (nom == null) {
             return null;
         }
-        for (Maison m : maisons) {
-            if (nom.equals(m.getNom())) {
-                return m;
-            }
-        }
-        return null;
+        String nomNormalise = nom.toUpperCase().trim();
+        return maisons.stream()
+                .filter(m -> m.getNom().equals(nomNormalise))
+                .findFirst()
+                .orElse(null);
     }
 
     /**
-     * Retourne la liste des maisons connectees a un generateur donne.
+     * Retourne la liste des maisons connectées à un générateur.
      *
-     * @param g Le generateur
-     * @return La liste des maisons connectees a ce generateur
+     * @param generateur le générateur
+     * @return une copie de la liste des maisons connectées (liste vide si aucune)
      */
-    public List<Maison> trouverLesMaisonsDeGenerateur(Generateur g) {
-        List<Maison> liste = connexions.get(g);
-        if (liste == null) {
-            return new ArrayList<>();
-        }
-        // on renvoie une copie pour eviter les modifications externes
-        return new ArrayList<>(liste);
+    public List<Maison> trouverLesMaisonsDeGenerateur(Generateur generateur) {
+        List<Maison> liste = connexions.get(generateur);
+        return liste == null ? new ArrayList<>() : new ArrayList<>(liste);
     }
 
     /**
-     * Indique si une maison est connectee a un generateur quelconque.
+     * Vérifie si une maison est connectée à un générateur.
      *
-     * @param maison La maison a tester
-     * @return true si la maison est connectee, false sinon
+     * @param maison la maison à tester
+     * @return {@code true} si la maison est connectée
      */
     public boolean maisonEstConnectee(Maison maison) {
-        for (List<Maison> liste : connexions.values()) {
-            if (liste.contains(maison)) {
-                return true;
-            }
-        }
-        return false;
+        return connexions.values().stream()
+                .anyMatch(liste -> liste.contains(maison));
     }
 
     /**
-     * Retourne la liste des maisons qui ne sont connectees a aucun generateur.
+     * Retourne la liste des maisons non connectées à un générateur.
      *
-     * @return La liste des maisons non connectees
+     * @return la liste des maisons non connectées
      */
     public List<Maison> maisonsNonConnectees() {
-        List<Maison> res = new ArrayList<>();
-        for (Maison m : maisons) {
-            if (!maisonEstConnectee(m)) {
-                res.add(m);
-            }
-        }
-        return res;
+        return maisons.stream()
+                .filter(m -> !maisonEstConnectee(m))
+                .collect(Collectors.toList());
     }
 
     /**
-     * Verifie si toutes les maisons du reseau sont connectees a un generateur.
+     * Vérifie si toutes les maisons sont connectées.
      *
-     * @return true si toutes les maisons sont connectees, false sinon
+     * @return {@code true} si toutes les maisons ont un générateur
      */
     public boolean toutesLesMaisonsConnectees() {
         return maisonsNonConnectees().isEmpty();
     }
-    
-    /**
-     * Supprime la connexion entre une maison et son generateur.
-     *
-     * @param m La maison dont on veut supprimer la connexion
-     *          (si la maison n'est pas connectee, la methode ne fait rien)
-     */
-    public void supprimerConnexion(Maison m) {
-    	if (m == null) {
-    		return;
-    	}
-    	
-        Generateur g = trouverGenerateur(m);
 
-        if (g == null) {
+    /**
+     * Supprime la connexion d'une maison avec son générateur.
+     *
+     * @param maison la maison à déconnecter (ignoré si null ou non connectée)
+     */
+    public void supprimerConnexion(Maison maison) {
+        if (maison == null) {
             return;
         }
-
-        List<Maison> maisonsDuGenerateur = connexions.get(g);
-
-        if (maisonsDuGenerateur != null) {
-            maisonsDuGenerateur.remove(m);
+        Generateur g = trouverGenerateur(maison);
+        if (g != null) {
+            connexions.get(g).remove(maison);
         }
     }
 
+    /**
+     * Supprime un générateur du réseau.
+     * 
+     * <p>Attention : les maisons connectées à ce générateur deviennent orphelines.
+     *
+     * @param generateur le générateur à supprimer
+     * @return {@code true} si le générateur a été supprimé
+     */
+    public boolean supprimerGenerateur(Generateur generateur) {
+        if (generateur == null || !connexions.containsKey(generateur)) {
+            return false;
+        }
+        connexions.remove(generateur);
+        return true;
+    }
 
     /**
-     * Affiche tous les generateurs du reseau dans la console.
+     * Affiche tous les générateurs dans la console.
      */
     public void affichageGenerateurs() {
-        System.out.println("\nGENERATEURS :");
+        System.out.println("\nGÉNÉRATEURS :");
         System.out.println("─────────────────────────────────");
-        for (Generateur g : connexions.keySet()) {
-            System.out.println("  - " + g.toString());
-        }
+        connexions.keySet().forEach(g -> System.out.println("  - " + g));
     }
 
     /**
-     * Affiche toutes les maisons du reseau dans la console.
+     * Affiche toutes les maisons dans la console.
      */
     public void affichageMaisons() {
         System.out.println("\nMAISONS :");
         System.out.println("─────────────────────────────────");
-        for (Maison m : maisons) {
-            System.out.println("  - " + m.toString());
-        }
+        maisons.forEach(m -> System.out.println("  - " + m));
     }
-    
+
+    /**
+     * Affiche toutes les connexions dans la console.
+     */
     public void affichageConnexions() {
-    	for (Generateur g: connexions.keySet()) {
-    		if (connexions.get(g) == null) {
-    			System.out.println("   " + g.getNom() + " <-> vide");
-    		} else {
-	    		for (Maison m: connexions.get(g)) {
-	    			System.out.println("   " + g.getNom() + " <-> " + m.getNom());
-	    		}
-    		}
-    	}
-    }
-    
-    public boolean supprimerGenerateur(Generateur g) {
-        if (g == null) {
-        	return false;
-        }
-        
-        if (connexions.containsKey(g)) {
-            connexions.remove(g);
-            return true;
-        }
-        return false;
+        connexions.forEach((g, listeMaisons) -> {
+            if (listeMaisons == null || listeMaisons.isEmpty()) {
+                System.out.println("   " + g.getNom() + " <-> (aucune maison)");
+            } else {
+                listeMaisons.forEach(m -> 
+                    System.out.println("   " + g.getNom() + " <-> " + m.getNom()));
+            }
+        });
     }
 }

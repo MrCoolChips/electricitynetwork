@@ -1,29 +1,49 @@
 package up.mi.paa.model;
 
+import java.util.Objects;
+
 /**
- * Represente une maison consommatrice d'electricite dans le reseau.
- * Chaque maison possede un nom unique et un type de consommation.
+ * Représente une maison consommatrice d'électricité dans le réseau.
+ * 
+ * <p>Une maison est caractérisée par :
+ * <ul>
+ *   <li>Un nom unique (normalisé en majuscules)</li>
+ *   <li>Un type de consommation définissant sa demande énergétique</li>
+ * </ul>
+ * 
+ * <p>L'égalité entre deux maisons est basée uniquement sur leur nom,
+ * indépendamment de la casse. Cette classe est compatible avec les collections
+ * {@code HashSet} et {@code HashMap}.
+ * 
+ * @author Groupe 10
+ * @version 1.0
+ * @see TypeConsommation
+ * @see ReseauElectrique
  */
 public class Maison {
 
-    private String nom;
+    private final String nom;
     private TypeConsommation typeConsommation;
 
     /**
-     * Constructeur d'une maison.
-     * 
-     * @param nom Le nom unique de la maison
-     * @param typeConsommation Le type de consommation electrique (BASSE, NORMAL, FORTE)
+     * Construit une nouvelle maison avec le nom et le type de consommation spécifiés.
+     *
+     * @param nom              le nom unique de la maison (sera normalisé en majuscules)
+     * @param typeConsommation le type de consommation énergétique
+     * @throws IllegalArgumentException si le nom est null ou vide
      */
     public Maison(String nom, TypeConsommation typeConsommation) {
-        this.nom = nom.toUpperCase();
+        if (nom == null || nom.trim().isEmpty()) {
+            throw new IllegalArgumentException("Le nom de la maison ne peut pas être null ou vide");
+        }
+        this.nom = nom.toUpperCase().trim();
         this.typeConsommation = typeConsommation;
     }
 
     /**
      * Retourne le nom de la maison.
-     * 
-     * @return Le nom de la maison
+     *
+     * @return le nom normalisé en majuscules
      */
     public String getNom() {
         return nom;
@@ -31,74 +51,45 @@ public class Maison {
 
     /**
      * Retourne le type de consommation de la maison.
-     * 
-     * @return Le type de consommation
+     *
+     * @return le type de consommation actuel
      */
     public TypeConsommation getTypeConsommation() {
         return typeConsommation;
     }
 
     /**
+     * Retourne la consommation en kW de cette maison.
+     *
+     * @return la valeur de consommation définie par le type
+     */
+    public int getConsommation() {
+        return typeConsommation.demande();
+    }
+
+    /**
      * Modifie le type de consommation de la maison.
-     * 
-     * @param typeConsommation Le nouveau type de consommation
+     *
+     * @param typeConsommation le nouveau type de consommation
      */
     public void setTypeConsommation(TypeConsommation typeConsommation) {
         this.typeConsommation = typeConsommation;
     }
 
-    /**
-     * Retourne la consommation electrique de la maison en kW.
-     * 
-     * @return La consommation en kW selon le type de consommation
-     */
-    public int getConsommation() {
-        return typeConsommation.demande();
-    }
-    
-    /**
-     * Retourne une representation textuelle de la maison.
-     * 
-     * @return Une chaine decrivant la maison et sa consommation
-     */
     @Override
     public String toString() {
-    	return nom + ": le type de consommation de la maison " + typeConsommation.name() + " et elle consomme " + typeConsommation.demande() + "kW";
-    }
-    
-    /**
-     * Compare cette maison avec un autre objet.
-     * Deux maisons sont egales si elles ont le meme nom (insensible a la casse).
-     * 
-     * @param o L'objet a comparer
-     * @return true si les maisons ont le meme nom, false sinon
-     */
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) { 
-        	return true;
-        }
-        
-        if (!(o instanceof Maison)) { 
-        	return false;
-        }
-        
-        return nom.equals(((Maison) o).nom.toUpperCase());
-    }
-    
-    /**
-     * Calcule le hashCode de cette maison.
-     * Le hashCode doit être cohérent avec {@link #equals(Object)} :
-     * deux maisons considérées égales (même nom, insensible à la casse)
-     * doivent retourner la même valeur, sinon les collections comme HashSet/HashMap
-     * peuvent se comporter de manière incorrecte.
-     *
-     * @return Le hashCode basé sur le nom (déjà normalisé en majuscules)
-     */
-    @Override
-    public int hashCode() {
-        return nom.hashCode();
+        return String.format("%s (%s, %d kW)", nom, typeConsommation.name(), typeConsommation.demande());
     }
 
-    
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Maison)) return false;
+        return nom.equals(((Maison) o).nom);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(nom);
+    }
 }

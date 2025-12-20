@@ -57,19 +57,16 @@ public class ComparateurNaturel<T> implements Comparator<T> {
         if (nomA == null) return -1;
         if (nomB == null) return 1;
         
-        // Extraire préfixe alphabétique et suffixe numérique
         String prefixA = nomA.replaceAll("[0-9]+$", "");
         String prefixB = nomB.replaceAll("[0-9]+$", "");
         String numStrA = nomA.substring(prefixA.length());
         String numStrB = nomB.substring(prefixB.length());
         
-        // Comparer d'abord les préfixes
         int cmpPrefix = prefixA.compareToIgnoreCase(prefixB);
         if (cmpPrefix != 0) {
             return cmpPrefix;
         }
         
-        // Si préfixes égaux, comparer les numéros
         if (numStrA.isEmpty() && numStrB.isEmpty()) return 0;
         if (numStrA.isEmpty()) return -1;
         if (numStrB.isEmpty()) return 1;

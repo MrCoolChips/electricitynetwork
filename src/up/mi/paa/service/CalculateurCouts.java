@@ -8,143 +8,134 @@ import up.mi.paa.model.Maison;
 import up.mi.paa.model.ReseauElectrique;
 
 /**
- * Service responsable du calcul des coûts et de l'évaluation de l'efficacité d'un réseau électrique.
- * Cette classe permet de calculer le coût global d'une configuration donnée en se basant sur deux critères :
- * la dispersion (équilibre des charges) et la surcharge des générateurs.
- * Le calcul prend en compte un paramètre de sévérité (lambda).
+ * Service de calcul des coûts d'un réseau électrique.
+ * 
+ * <p>La fonction de coût combine deux critères :
+ * <ul>
+ *   <li><b>Dispersion</b> : mesure l'équilibre des charges entre générateurs</li>
+ *   <li><b>Surcharge</b> : pénalise les dépassements de capacité</li>
+ * </ul>
+ * 
+ * <p>Formule : {@code coût = dispersion + λ × surcharge}
+ * 
+ * @author Groupe 10
+ * @version 1.0
+ * @see Couts
  */
 public class CalculateurCouts {
-	
-   /**
-    * Le paramètre lambda (λ) qui contrôle la sévérité de la pénalisation 
-    * en cas de dépassement de la capacité maximale (surcharge).
-    */
-   private int lambda;
-   
-   /**
-    * Construit un nouveau calculateur de coûts avec une valeur de pénalisation initiale.
-    *
-    * @param lambda La valeur initiale de la sévérité de la pénalisation (entier positif).
-    */
-   public CalculateurCouts(int lambda) {
-       this.lambda = lambda;
-   }
-   
-   public int getLambda() {
-	   return lambda;
-   }
-   
-   /**
-    * Met à jour la valeur de lambda (sévérité de la pénalisation).
-    * Utile pour ajuster dynamiquement la pénalité via une interface graphique (ex: Slider)
-    * sans avoir à recréer l'objet calculateur.
-    *
-    * @param lambda La nouvelle valeur de lambda.
-    */
-   public void setLambda(int lambda) {
-       this.lambda = lambda;
-   }
-	
-   /**
-    * Calcule le coût complet pour une instance donnée du réseau électrique.
-    *
-    * @param reseau Le réseau électrique à évaluer.
-    * @return Un objet {@link Couts} contenant le coût global, la dispersion et la surcharge.
-    */
-   public Couts calculerCout(ReseauElectrique reseau) {
-    	double dispersion = calculerDisps(reseau);
-    	double surcharge = calculerSurcharge(reseau);
-        double coutsGlobale = dispersion + (lambda * surcharge);
-        return new Couts(coutsGlobale, dispersion, surcharge);
-    }
-	
-   /**
-    * Calcule la pénalisation due aux surcharges des générateurs.
-    *
-    * @param reseau Le réseau actuel.
-    * @return La somme des surcharges normalisées.
-    */
-   private double calculerSurcharge(ReseauElectrique reseau) {
-       double somme = 0.0;
-       for (Generateur g : reseau.getGenerateurs()) {
-           somme += Math.max(0.0, (getSommeDesDemandesElectriques(g, reseau) - g.getCapaciteMaximale())/g.getCapaciteMaximale());
-       }
-       
-       return somme;
-   }
-   
-   /**
-    * Calcule la dispersion (déséquilibre) des charges entre les générateurs.
-    * Mesure l'écart absolu entre le taux d'utilisation de chaque générateur et la moyenne.
-    *
-    * @param reseau Le réseau actuel.
-    * @return La somme des écarts absolus.
-    */
-   private double calculerDisps(ReseauElectrique reseau) {
-       double tauxDUtilisation = calculerLeTauxDUtilisationGlobale(reseau);
-       double somme = 0.0;
-       for (Generateur g : reseau.getGenerateurs()) {
-           somme += Math.abs(calculerLeTauxDUtilisation(g, reseau) - tauxDUtilisation);
-       }
-       
-       return somme;
-   }
-   
-   /**
-    * Calcule la somme des demandes électriques (consommation) des maisons connectées à un générateur.
-    * Cette méthode est publique pour permettre l'affichage des charges dans l'interface utilisateur.
-    *
-    * @param g Le générateur concerné.
-    * @param reseau Le réseau contenant les connexions.
-    * @return La charge totale en kW.
-    */
-   public double getSommeDesDemandesElectriques(Generateur g, ReseauElectrique reseau) {
-       List<Maison> m = reseau.trouverLesMaisonsDeGenerateur(g);
-       double sommeDesDemandesElectriques = 0.0;
-       for (int i = 0; i < m.size(); i++) {
-           sommeDesDemandesElectriques += m.get(i).getConsommation();
-       }
-       
-       return sommeDesDemandesElectriques;
-   }
-   
-   /**
-    * Calcule le taux d'utilisation individuel d'un générateur.
-    * Le taux est le rapport entre la demande totale et la capacité maximale.
-    *
-    * @param g Le générateur concerné.
-    * @param reseau Le réseau actuel.
-    * @return Le taux d'utilisation (ex: 1.0 = 100%, 1.2 = 120%).
-    * @throws ArithmeticException Si la capacité du générateur est 0.
-    */
-   public double calculerLeTauxDUtilisation(Generateur g, ReseauElectrique reseau) {
-       if(g.getCapaciteMaximale() == 0) {
-           throw new ArithmeticException("La capacite du generateur " + g.getNom() + " ne peut pas etre 0");
-       }
-       return getSommeDesDemandesElectriques(g, reseau) / g.getCapaciteMaximale();
-   }
-   
-   /**
-    * Calcule le taux d'utilisation moyen de tous les générateurs du réseau.
-    *
-    * @param reseau Le réseau actuel.
-    * @return La moyenne des taux d'utilisation.
-    * @throws ArithmeticException Si le réseau ne contient aucun générateur.
-    */
-   private double calculerLeTauxDUtilisationGlobale(ReseauElectrique reseau) {
-    	List<Generateur> listeDeGenerateurs = reseau.getGenerateurs();
-       if(listeDeGenerateurs.isEmpty()) {
-           throw new ArithmeticException("Aucun generateur dans le reseau");
-       }
-       
-       double tauxDUtilisation = 0.0;
-               
-       for (int i = 0; i < listeDeGenerateurs.size(); i++) {
-           tauxDUtilisation += calculerLeTauxDUtilisation(listeDeGenerateurs.get(i), reseau);
-       }
-       
-       return tauxDUtilisation / listeDeGenerateurs.size();
-       
-   }
 
+    private int lambda;
+
+    /**
+     * Construit un calculateur de coûts avec le paramètre de pénalisation spécifié.
+     *
+     * @param lambda le coefficient de pénalisation des surcharges (λ ≥ 0)
+     */
+    public CalculateurCouts(int lambda) {
+        this.lambda = lambda;
+    }
+
+    /**
+     * Retourne le coefficient de pénalisation actuel.
+     *
+     * @return la valeur de lambda
+     */
+    public int getLambda() {
+        return lambda;
+    }
+
+    /**
+     * Modifie le coefficient de pénalisation.
+     *
+     * @param lambda la nouvelle valeur de lambda
+     */
+    public void setLambda(int lambda) {
+        this.lambda = lambda;
+    }
+
+    /**
+     * Calcule le coût global du réseau.
+     *
+     * @param reseau le réseau à évaluer
+     * @return un objet {@link Couts} contenant le détail des coûts
+     */
+    public Couts calculerCout(ReseauElectrique reseau) {
+        double dispersion = calculerDispersion(reseau);
+        double surcharge = calculerSurcharge(reseau);
+        double coutGlobal = dispersion + lambda * surcharge;
+        return new Couts(coutGlobal, dispersion, surcharge);
+    }
+
+    /**
+     * Calcule la charge totale des maisons connectées à un générateur.
+     *
+     * @param generateur le générateur concerné
+     * @param reseau     le réseau contenant les connexions
+     * @return la somme des consommations en kW
+     */
+    public double getSommeDesDemandesElectriques(Generateur generateur, ReseauElectrique reseau) {
+        return reseau.trouverLesMaisonsDeGenerateur(generateur).stream()
+                .mapToDouble(Maison::getConsommation)
+                .sum();
+    }
+
+    /**
+     * Calcule le taux d'utilisation d'un générateur.
+     *
+     * @param generateur le générateur à évaluer
+     * @param reseau     le réseau contenant les connexions
+     * @return le ratio charge/capacité (1.0 = 100%)
+     * @throws ArithmeticException si la capacité est nulle
+     */
+    public double calculerLeTauxDUtilisation(Generateur generateur, ReseauElectrique reseau) {
+        double capacite = generateur.getCapaciteMaximale();
+        if (capacite == 0) {
+            throw new ArithmeticException("La capacité du générateur " + generateur.getNom() + " ne peut pas être 0");
+        }
+        return getSommeDesDemandesElectriques(generateur, reseau) / capacite;
+    }
+
+    /**
+     * Calcule la pénalité de surcharge totale.
+     * 
+     * <p>Pour chaque générateur, la surcharge est le dépassement normalisé :
+     * {@code max(0, (charge - capacité) / capacité)}
+     *
+     * @param reseau le réseau à évaluer
+     * @return la somme des surcharges normalisées
+     */
+    private double calculerSurcharge(ReseauElectrique reseau) {
+        return reseau.getGenerateurs().stream()
+                .mapToDouble(g -> {
+                    double charge = getSommeDesDemandesElectriques(g, reseau);
+                    double capacite = g.getCapaciteMaximale();
+                    return Math.max(0.0, (charge - capacite) / capacite);
+                })
+                .sum();
+    }
+
+    /**
+     * Calcule la dispersion des charges entre générateurs.
+     * 
+     * <p>La dispersion mesure l'écart absolu entre le taux d'utilisation
+     * de chaque générateur et la moyenne globale.
+     *
+     * @param reseau le réseau à évaluer
+     * @return la somme des écarts absolus
+     */
+    private double calculerDispersion(ReseauElectrique reseau) {
+        List<Generateur> generateurs = reseau.getGenerateurs();
+        if (generateurs.isEmpty()) {
+            return 0.0;
+        }
+
+        double tauxMoyen = generateurs.stream()
+                .mapToDouble(g -> calculerLeTauxDUtilisation(g, reseau))
+                .average()
+                .orElse(0.0);
+
+        return generateurs.stream()
+                .mapToDouble(g -> Math.abs(calculerLeTauxDUtilisation(g, reseau) - tauxMoyen))
+                .sum();
+    }
 }

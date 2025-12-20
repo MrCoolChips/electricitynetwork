@@ -1,16 +1,22 @@
 package up.mi.paa.exception;
 
 /**
- * Exception lancee lorsqu'une maison n'est pas trouvee dans le reseau.
+ * Exception levée lorsqu'une maison n'est pas trouvée dans le réseau.
+ * 
+ * <p>Cette exception est lancée lors d'opérations nécessitant
+ * une maison inexistante.
+ * 
+ * @author Groupe 10
+ * @version 1.0
  */
 public class MaisonIntrouvableException extends Exception {
-    
-	private static final long serialVersionUID = 2188974259994949412L;
 
-	/**
-     * Constructeur avec message d'erreur.
-     * 
-     * @param message Le message d'erreur
+    private static final long serialVersionUID = 2188974259994949412L;
+
+    /**
+     * Construit une exception avec le message spécifié.
+     *
+     * @param message le message décrivant l'erreur
      */
     public MaisonIntrouvableException(String message) {
         super(message);

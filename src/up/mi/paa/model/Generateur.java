@@ -1,95 +1,85 @@
 package up.mi.paa.model;
 
+import java.util.Objects;
+
 /**
- * Represente un generateur electrique dans le reseau.
- * Un generateur possede un nom unique et une capacite maximale de production.
+ * Représente un générateur électrique dans le réseau de distribution.
+ * 
+ * <p>Un générateur est caractérisé par :
+ * <ul>
+ *   <li>Un nom unique (normalisé en majuscules)</li>
+ *   <li>Une capacité maximale de production en kW</li>
+ * </ul>
+ * 
+ * <p>L'égalité entre deux générateurs est basée uniquement sur leur nom,
+ * indépendamment de la casse. Cette classe est compatible avec les collections
+ * {@code HashSet} et {@code HashMap}.
+ * 
+ * @author Groupe 10
+ * @version 1.0
+ * @see ReseauElectrique
  */
 public class Generateur {
 
-    private String nom;
+    private final String nom;
     private double capaciteMaximale;
 
     /**
-     * Constructeur d'un generateur.
-     * 
-     * @param nom Le nom unique du generateur
-     * @param capaciteMaximale La capacite maximale de production en kW
+     * Construit un nouveau générateur avec le nom et la capacité spécifiés.
+     *
+     * @param nom              le nom unique du générateur (sera normalisé en majuscules)
+     * @param capaciteMaximale la capacité maximale de production en kW (doit être positive)
+     * @throws IllegalArgumentException si le nom est null ou vide
      */
     public Generateur(String nom, double capaciteMaximale) {
-        this.nom = nom.toUpperCase();
+        if (nom == null || nom.trim().isEmpty()) {
+            throw new IllegalArgumentException("Le nom du générateur ne peut pas être null ou vide");
+        }
+        this.nom = nom.toUpperCase().trim();
         this.capaciteMaximale = capaciteMaximale;
     }
 
     /**
-     * Retourne le nom du generateur.
-     * 
-     * @return Le nom du generateur
+     * Retourne le nom du générateur.
+     *
+     * @return le nom normalisé en majuscules
      */
     public String getNom() {
         return nom;
     }
 
     /**
-     * Retourne la capacite maximale du generateur.
-     * 
-     * @return La capacite maximale en kW
+     * Retourne la capacité maximale de production.
+     *
+     * @return la capacité maximale en kW
      */
     public double getCapaciteMaximale() {
         return capaciteMaximale;
     }
 
     /**
-     * Modifie la capacite maximale du generateur.
-     * 
-     * @param capacite La nouvelle capacite maximale en kW
+     * Modifie la capacité maximale de production.
+     *
+     * @param capacite la nouvelle capacité en kW
      */
     public void setCapaciteMaximale(double capacite) {
         this.capaciteMaximale = capacite;
     }
-    
-    /**
-     * Retourne une representation textuelle du generateur.
-     * 
-     * @return Une chaine decrivant le generateur et sa capacite
-     */
+
     @Override
     public String toString() {
-    	return nom + ": la capacite maximale du générateur est de " + capaciteMaximale + "kW";
-    }
-    
-    /**
-     * Compare ce generateur avec un autre objet.
-     * Deux generateurs sont egaux s'ils ont le meme nom (insensible a la casse).
-     * 
-     * @param o L'objet a comparer
-     * @return true si les generateurs ont le meme nom, false sinon
-     */
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) { 
-        	return true;
-        }
-        
-        if (!(o instanceof Generateur)) { 
-        	return false;
-        }
-        
-        return nom.equals(((Generateur) o).nom.toUpperCase());
-    }
-    
-    /**
-     * Calcule le hashCode de ce générateur.
-     * Le hashCode doit être cohérent avec {@link #equals(Object)} :
-     * deux générateurs considérés égaux (même nom, insensible à la casse)
-     * doivent retourner la même valeur, sinon les collections comme HashSet/HashMap
-     * peuvent se comporter de manière incorrecte.
-     *
-     * @return Le hashCode basé sur le nom (déjà normalisé en majuscules)
-     */
-    @Override
-    public int hashCode() {
-        return nom.hashCode();
+        return String.format("%s (%.0f kW)", nom, capaciteMaximale);
     }
 
-    
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Generateur)) return false;
+        return nom.equals(((Generateur) o).nom);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(nom);
+    }
 }

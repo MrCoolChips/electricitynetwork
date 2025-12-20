@@ -26,7 +26,6 @@ import up.mi.paa.ui.cli.StyleCLI;
  */
 public class GestionnaireFichier implements StyleCLI {
 
-    // Mots-clés valides
     private static final String MOT_CLE_GENERATEUR = "generateur";
     private static final String MOT_CLE_MAISON = "maison";
     private static final String MOT_CLE_CONNEXION = "connexion";
@@ -52,25 +51,20 @@ public class GestionnaireFichier implements StyleCLI {
         try (BufferedReader bf = new BufferedReader(new FileReader(f))) {
 
             String line = null;
-            String phase = "generateur"; // Phase attendue : generateur -> maison -> connexion
+            String phase = "generateur";
 
             while ((line = bf.readLine()) != null) {
                 numeroLigne++;
                 
-                // Supprimer les espaces en debut et fin de ligne
                 line = line.trim();
                 
-                // Ignorer les lignes vides
                 if (line.isEmpty()) {
                     continue;
                 }
 
-                // === ETAPE 1 : Identifier le mot-cle pour verifier l'ORDRE en premier ===
                 String motCle = extraireMotCle(line);
                 
-                // Si pas de mot-cle identifiable, verifier la syntaxe de base
                 if (motCle == null) {
-                    // Verifier si c'est un probleme de point manquant
                     if (!line.contains(".")) {
                         throw new IOException(formatErreur(numeroLigne, "Point manquant", 
                             "Chaque ligne doit se terminer par un point '.'"));
@@ -79,7 +73,6 @@ public class GestionnaireFichier implements StyleCLI {
                         "Format attendu: mot_cle(param1,param2). avec mot_cle = generateur, maison ou connexion"));
                 }
 
-                // === ETAPE 2 : Verifier si le mot-cle est valide ===
                 boolean motCleValide = motCle.equals(MOT_CLE_GENERATEUR) || 
                                        motCle.equals(MOT_CLE_MAISON) || 
                                        motCle.equals(MOT_CLE_CONNEXION);
@@ -93,11 +86,6 @@ public class GestionnaireFichier implements StyleCLI {
                     throw new IOException(formatErreur(numeroLigne, "Mot-cle invalide", message));
                 }
 
-                // === ETAPE 3 : Verifier l'ORDRE (avant toute autre validation) ===
-                // Regle 1: Tous les generateurs doivent etre definis AVANT les maisons
-                // Regle 2: Toutes les maisons doivent etre definies APRES les generateurs et AVANT les connexions
-                // Regle 3: Toutes les connexions doivent etre definies APRES les maisons
-                
                 if (motCle.equals(MOT_CLE_GENERATEUR)) {
                     if (phase.equals("maison")) {
                         throw new IOException(formatErreur(numeroLigne, "Ordre invalide", 
@@ -107,7 +95,6 @@ public class GestionnaireFichier implements StyleCLI {
                         throw new IOException(formatErreur(numeroLigne, "Ordre invalide", 
                             "Tous les generateurs doivent etre definis AVANT les connexions."));
                     }
-                    // On reste en phase generateur
                     
                 } else if (motCle.equals(MOT_CLE_MAISON)) {
                     if (phase.equals("generateur") && reseau.getReseauElectrique().getGenerateurs().isEmpty()) {
@@ -119,7 +106,7 @@ public class GestionnaireFichier implements StyleCLI {
                         throw new IOException(formatErreur(numeroLigne, "Ordre invalide", 
                             "Toutes les maisons doivent etre definies AVANT les connexions."));
                     }
-                    phase = "maison"; // Transition vers phase maison
+                    phase = "maison";
                     
                 } else if (motCle.equals(MOT_CLE_CONNEXION)) {
                     if (phase.equals("generateur") && reseau.getReseauElectrique().getGenerateurs().isEmpty()) {
@@ -133,24 +120,19 @@ public class GestionnaireFichier implements StyleCLI {
                             "Toutes les connexions doivent etre definies APRES les maisons. " +
                             "Aucune maison n'a ete definie."));
                     }
-                    phase = "connexion"; // Transition vers phase connexion
+                    phase = "connexion";
                 }
 
-                // === ETAPE 4 : Maintenant valider la SYNTAXE de la ligne ===
-                
-                // Verifier les espaces
                 if (line.contains(" ") || line.contains("\t")) {
                     throw new IOException(formatErreur(numeroLigne, "Espaces interdits", 
                         "La ligne contient des espaces ou tabulations. Format attendu sans espace."));
                 }
 
-                // Verifier le point final
                 if (!line.endsWith(".")) {
                     throw new IOException(formatErreur(numeroLigne, "Point manquant", 
                         "Chaque ligne doit se terminer par un point '.'"));
                 }
 
-                // Verifier la structure des parentheses
                 int indiceOuvrante = line.indexOf('(');
                 int indiceFermante = line.lastIndexOf(')');
                 
@@ -164,13 +146,11 @@ public class GestionnaireFichier implements StyleCLI {
                         "Parenthese fermante ')' manquante ou mal placee"));
                 }
 
-                // Verifier que le point est juste apres la parenthese fermante
                 if (indiceFermante != line.length() - 2) {
                     throw new IOException(formatErreur(numeroLigne, "Syntaxe invalide", 
                         "Le point '.' doit etre immediatement apres la parenthese fermante ')'"));
                 }
 
-                // === ETAPE 5 : Extraire et valider les parametres ===
                 String contenu = line.substring(indiceOuvrante + 1, indiceFermante);
                 String[] params = contenu.split(",");
 
@@ -187,10 +167,8 @@ public class GestionnaireFichier implements StyleCLI {
                         "Les parametres ne peuvent pas etre vides"));
                 }
 
-                // === ETAPE 6 : Traiter selon le mot-cle ===
                 try {
                     if (motCle.equals(MOT_CLE_GENERATEUR)) {
-                        // Valider la capacite
                         double capacite;
                         try {
                             capacite = Double.parseDouble(param2);
@@ -207,7 +185,6 @@ public class GestionnaireFichier implements StyleCLI {
                         reseau.ajouterOuModifierGenerateur(param1, capacite);
 
                     } else if (motCle.equals(MOT_CLE_MAISON)) {
-                        // Valider le type de consommation (doit être en MAJUSCULES)
                         String typeOriginal = params[1].trim();
                         if (!typeOriginal.equals(typeOriginal.toUpperCase())) {
                             throw new IOException(formatErreur(numeroLigne, "Casse invalide", 
@@ -236,7 +213,6 @@ public class GestionnaireFichier implements StyleCLI {
                 }
             }
             
-            // Validation finale du reseau
             String problems = reseau.verifierValiditeReseau();
             if (problems.length() != 0) {
                 System.err.println(JAUNE + "[VALIDATION]" + RESET + " Problemes detectes dans le reseau :");
@@ -281,19 +257,16 @@ public class GestionnaireFichier implements StyleCLI {
     private static String suggererMotCle(String motCle) {
         String motCleLower = motCle.toLowerCase();
         
-        // Verifier si ca ressemble a "generateur"
         if (motCleLower.startsWith("gen") || motCleLower.contains("gener") || 
             motCleLower.contains("gene") || calculerSimilarite(motCleLower, MOT_CLE_GENERATEUR) > 0.5) {
             return MOT_CLE_GENERATEUR;
         }
         
-        // Verifier si ca ressemble a "maison"
         if (motCleLower.startsWith("mai") || motCleLower.contains("mais") || 
             motCleLower.contains("aison") || calculerSimilarite(motCleLower, MOT_CLE_MAISON) > 0.5) {
             return MOT_CLE_MAISON;
         }
         
-        // Verifier si ca ressemble a "connexion"
         if (motCleLower.startsWith("con") || motCleLower.contains("connex") || 
             motCleLower.contains("nexion") || calculerSimilarite(motCleLower, MOT_CLE_CONNEXION) > 0.5) {
             return MOT_CLE_CONNEXION;
@@ -380,11 +353,9 @@ public class GestionnaireFichier implements StyleCLI {
             
             List<String> lignesConnexions = new ArrayList<>();
             
-            // 1. Écriture des générateurs
             for (Generateur g : re.getGenerateurs()) {
                 pw.println("generateur(" + g.getNom() + "," + (int) g.getCapaciteMaximale() + ").");
                 
-                // Préparation des connexions associées
                 List<Maison> maisonsConnectees = re.trouverLesMaisonsDeGenerateur(g);
                 if (maisonsConnectees != null) {
                     for (Maison m : maisonsConnectees) {
@@ -393,12 +364,10 @@ public class GestionnaireFichier implements StyleCLI {
                 }
             }
             
-            // 2. Écriture des maisons
             for (Maison m : re.getMaisons()) {
                 pw.println("maison(" + m.getNom() + "," + m.getTypeConsommation().name() + ").");
             }
             
-            // 3. Écriture des connexions
             for (String ligne : lignesConnexions) {
                 pw.println(ligne);
             }

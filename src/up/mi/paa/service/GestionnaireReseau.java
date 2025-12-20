@@ -4,270 +4,247 @@ import up.mi.paa.model.*;
 import up.mi.paa.exception.*;
 
 /**
- * Classe gerant la logique metier du reseau electrique.
- * Gere les operations CRUD et les calculs de cout, surcharge et dispersion.
+ * Service de gestion du réseau électrique.
+ * 
+ * <p>Cette classe fournit les opérations métier pour manipuler le réseau :
+ * <ul>
+ *   <li>CRUD des générateurs et maisons</li>
+ *   <li>Gestion des connexions</li>
+ *   <li>Validation du réseau</li>
+ * </ul>
+ * 
+ * @author Groupe 10
+ * @version 1.0
+ * @see ReseauElectrique
  */
 public class GestionnaireReseau {
 
-    private ReseauElectrique re;
-    
+    private final ReseauElectrique reseau;
+
     /**
-     * Constructeur avec un reseau electrique vide.
+     * Construit un gestionnaire avec un réseau vide.
      */
     public GestionnaireReseau() {
-        re = new ReseauElectrique();
+        this.reseau = new ReseauElectrique();
     }
-    
+
     /**
-     * Constructeur avec un reseau electrique existant.
-     * 
-     * @param re Le reseau electrique a gerer
+     * Construit un gestionnaire pour un réseau existant.
+     *
+     * @param reseau le réseau à gérer
      */
-    public GestionnaireReseau(ReseauElectrique re) {
-        this.re = re;
+    public GestionnaireReseau(ReseauElectrique reseau) {
+        this.reseau = reseau;
     }
-    
+
     /**
-     * Retourne le reseau electrique gere.
-     * 
-     * @return Le reseau electrique
+     * Retourne le réseau électrique géré.
+     *
+     * @return le réseau électrique
      */
     public ReseauElectrique getReseauElectrique() {
-        return re;
+        return reseau;
     }
 
     /**
-     * Ajoute ou modifie un generateur dans le reseau.
-     * 
-     * @param nom Le nom du generateur
-     * @param capacite La capacite maximale
-     * @return true si le generateur existait deja, false sinon
+     * Ajoute ou modifie un générateur.
+     *
+     * @param nom      le nom du générateur
+     * @param capacite la capacité maximale en kW
+     * @return {@code true} si modification, {@code false} si création
      */
     public boolean ajouterOuModifierGenerateur(String nom, double capacite) {
-        Generateur existant = re.trouverGenerateur(nom);
-        
-        if(existant != null) {
+        Generateur existant = reseau.trouverGenerateur(nom);
+        if (existant != null) {
             existant.setCapaciteMaximale(capacite);
             return true;
-        } else {
-            Generateur nouveau = new Generateur(nom, capacite);
-            re.ajouterGenerateur(nouveau);
-            return false;
         }
+        reseau.ajouterGenerateur(new Generateur(nom, capacite));
+        return false;
     }
 
     /**
-     * Ajoute ou modifie une maison dans le reseau.
-     * 
-     * @param nom Le nom de la maison
-     * @param type Le type de consommation
-     * @return true si la maison existait deja, false sinon
+     * Ajoute ou modifie une maison.
+     *
+     * @param nom  le nom de la maison
+     * @param type le type de consommation
+     * @return {@code true} si modification, {@code false} si création
      */
     public boolean ajouterOuModifierMaison(String nom, TypeConsommation type) {
-        Maison existante = re.trouverMaison(nom);
-        
-        if(existante != null) {
+        Maison existante = reseau.trouverMaison(nom);
+        if (existante != null) {
             existante.setTypeConsommation(type);
             return true;
-        } else {
-            Maison nouvelle = new Maison(nom, type);
-            re.ajouterMaison(nouvelle);
-            return false;
         }
+        reseau.ajouterMaison(new Maison(nom, type));
+        return false;
     }
 
     /**
-     * Cree une connexion entre une maison et un generateur.
+     * Crée une connexion entre une maison et un générateur.
      * 
-     * @param element1 Premier element (maison ou generateur)
-     * @param element2 Second element (generateur ou maison)
-     * @throws FormatInvalideException si les elements ne sont pas valides
-     * @throws GenerateurIntrouvableException si le generateur n'existe pas
-     * @throws MaisonIntrouvableException si la maison n'existe pas
-     * @throws ConnexionExistanteException si la maison est deja connectee
+     * <p>L'ordre des paramètres est flexible : la méthode détecte automatiquement
+     * quel élément est la maison et lequel est le générateur.
+     *
+     * @param element1 premier élément (maison ou générateur)
+     * @param element2 second élément (générateur ou maison)
+     * @throws GenerateurIntrouvableException si le générateur n'existe pas
+     * @throws MaisonIntrouvableException     si la maison n'existe pas
+     * @throws ConnexionExistanteException    si la maison est déjà connectée
      */
-    public void creerConnexion(String element1, String element2) 
-            throws FormatInvalideException, GenerateurIntrouvableException, 
-                   MaisonIntrouvableException, ConnexionExistanteException {
-        
-        Generateur generateur = re.trouverGenerateur(element1);
-        Maison maison = re.trouverMaison(element2);
+    public void creerConnexion(String element1, String element2)
+            throws GenerateurIntrouvableException, MaisonIntrouvableException, ConnexionExistanteException {
+
+        Generateur generateur = reseau.trouverGenerateur(element1);
+        Maison maison = reseau.trouverMaison(element2);
 
         if (generateur == null || maison == null) {
-            generateur = re.trouverGenerateur(element2);
-            maison = re.trouverMaison(element1);
+            generateur = reseau.trouverGenerateur(element2);
+            maison = reseau.trouverMaison(element1);
         }
 
         if (generateur == null) {
-            throw new GenerateurIntrouvableException("Generateur introuvable ! Verifiez que vous l'avez cree avant.");
+            throw new GenerateurIntrouvableException("Générateur introuvable ! Vérifiez qu'il existe.");
         }
-        
         if (maison == null) {
-            throw new MaisonIntrouvableException("Maison introuvable ! Verifiez que vous l'avez creee avant.");
+            throw new MaisonIntrouvableException("Maison introuvable ! Vérifiez qu'elle existe.");
+        }
+        if (reseau.maisonEstConnectee(maison)) {
+            throw new ConnexionExistanteException("La maison " + maison.getNom() + " est déjà connectée !");
         }
 
-        if (re.maisonEstConnectee(maison)) {
-            throw new ConnexionExistanteException("La maison " + maison.getNom() + " est deja connectee !");
-        }
-
-        re.ajouterConnexion(maison, generateur);
+        reseau.ajouterConnexion(maison, generateur);
     }
 
     /**
      * Supprime une connexion existante.
-     * 
-     * @param element1 Premier element (maison ou generateur)
-     * @param element2 Second element (generateur ou maison)
-     * @throws FormatInvalideException si les elements ne sont pas valides
-     * @throws GenerateurIntrouvableException si le generateur n'existe pas
-     * @throws MaisonIntrouvableException si la maison n'existe pas
-     * @throws ConnexionIntrouvableException si la connexion n'existe pas
+     *
+     * @param element1 premier élément (maison ou générateur)
+     * @param element2 second élément (générateur ou maison)
+     * @throws GenerateurIntrouvableException si le générateur n'existe pas
+     * @throws MaisonIntrouvableException     si la maison n'existe pas
+     * @throws ConnexionIntrouvableException  si la connexion n'existe pas
      */
-    public void supprimerConnexion(String element1, String element2) 
-            throws FormatInvalideException, GenerateurIntrouvableException, 
-                   MaisonIntrouvableException, ConnexionIntrouvableException {
-        
-        Generateur generateur = re.trouverGenerateur(element1);
-        Maison maison = re.trouverMaison(element2);
+    public void supprimerConnexion(String element1, String element2)
+            throws GenerateurIntrouvableException, MaisonIntrouvableException, ConnexionIntrouvableException {
+
+        Generateur generateur = reseau.trouverGenerateur(element1);
+        Maison maison = reseau.trouverMaison(element2);
 
         if (generateur == null) {
-            generateur = re.trouverGenerateur(element2);
-            maison = re.trouverMaison(element1);
+            generateur = reseau.trouverGenerateur(element2);
+            maison = reseau.trouverMaison(element1);
         }
 
         if (generateur == null) {
-            throw new GenerateurIntrouvableException("Generateur introuvable !");
+            throw new GenerateurIntrouvableException("Générateur introuvable !");
         }
-        
         if (maison == null) {
             throw new MaisonIntrouvableException("Maison introuvable !");
         }
-
-        if (!re.maisonEstConnectee(maison)) {
-            throw new ConnexionIntrouvableException("La maison " + maison.getNom() + " n'est pas connectee !");
+        if (!reseau.maisonEstConnectee(maison)) {
+            throw new ConnexionIntrouvableException("La maison " + maison.getNom() + " n'est pas connectée !");
         }
 
-        Generateur generateurConnecte = re.trouverGenerateur(maison);
+        Generateur generateurConnecte = reseau.trouverGenerateur(maison);
         if (!generateur.equals(generateurConnecte)) {
             throw new ConnexionIntrouvableException(
-                "La connexion entre " + maison.getNom() + " et " + generateur.getNom() + " n'existe pas ! " +
-                "La maison " + maison.getNom() + " est connectee a " + generateurConnecte.getNom()
-            );
+                    "La connexion entre " + maison.getNom() + " et " + generateur.getNom() + " n'existe pas ! " +
+                    "La maison est connectée à " + generateurConnecte.getNom());
         }
 
-        re.supprimerConnexion(maison);
+        reseau.supprimerConnexion(maison);
     }
 
     /**
-     * Verifie la validite du reseau.
-     * 
-     * @return Un String de messages d'erreur (vide si valide)
+     * Vérifie la validité du réseau.
+     *
+     * @return une chaîne décrivant les problèmes (vide si valide)
      */
     public String verifierValiditeReseau() {
-        StringBuffer problemes = new StringBuffer();
+        StringBuilder problemes = new StringBuilder();
         int compteur = 1;
-        // Vérifier qu'il y a au moins une maison et un générateur
-        if (re.getMaisons().isEmpty()) {
-        	problemes.append(compteur + ") Le reseau doit contenir au moins une maison \n");
-        	compteur++;
+
+        if (reseau.getMaisons().isEmpty()) {
+            problemes.append(compteur++).append(") Le réseau doit contenir au moins une maison\n");
         }
-        
-        if (re.getGenerateurs().isEmpty()) {
-        	problemes.append(compteur + ") Le reseau doit contenir au moins un generateur \n");
-        	compteur++;
+        if (reseau.getGenerateurs().isEmpty()) {
+            problemes.append(compteur++).append(") Le réseau doit contenir au moins un générateur\n");
         }
-        
-        // Vérifier que toutes les maisons sont connectées
-        for (Maison maison : re.maisonsNonConnectees()) {
-        	problemes.append(compteur + ") " + maison.getNom() + " (aucune connexion) \n");
-        	compteur++;
+
+        for (Maison maison : reseau.maisonsNonConnectees()) {
+            problemes.append(compteur++).append(") ").append(maison.getNom()).append(" (aucune connexion)\n");
         }
-        
-        double demandeTotale = 0.0;
-        double capaciteTotale = 0.0;
-        
-        for (Maison maison : re.getMaisons()) {
-            demandeTotale += maison.getConsommation();
-        }
-        
-        for (Generateur generateur : re.getGenerateurs()) {
-            capaciteTotale += generateur.getCapaciteMaximale();
-        }
-        
+
+        double demandeTotale = reseau.getMaisons().stream()
+                .mapToDouble(Maison::getConsommation).sum();
+        double capaciteTotale = reseau.getGenerateurs().stream()
+                .mapToDouble(Generateur::getCapaciteMaximale).sum();
+
         if (demandeTotale > capaciteTotale) {
-        	problemes.append(compteur + ") Demande totale (" + String.format("%.2f", demandeTotale) + " kW) superieure a la capacite totale (" + String.format("%.2f", capaciteTotale) + " kW) \n");
-        	compteur++;
+            problemes.append(compteur).append(") Demande totale (")
+                    .append(String.format("%.2f", demandeTotale))
+                    .append(" kW) supérieure à la capacité totale (")
+                    .append(String.format("%.2f", capaciteTotale)).append(" kW)\n");
         }
-        
+
         return problemes.toString();
     }
-    
+
     /**
-     * Modifie une connexion existante en changeant le generateur connecte a une maison.
-     * 
-     * @param ancienElement1 Premier element de l'ancienne connexion
-     * @param ancienElement2 Second element de l'ancienne connexion
-     * @param nouvelElement1 Premier element de la nouvelle connexion
-     * @param nouvelElement2 Second element de la nouvelle connexion
-     * @throws FormatInvalideException si le format d'entree est incorrect
-     * @throws GenerateurIntrouvableException si un generateur n'existe pas
-     * @throws MaisonIntrouvableException si une maison n'existe pas
-     * @throws ConnexionIntrouvableException si la connexion a modifier n'existe pas
+     * Modifie une connexion existante en changeant le générateur.
+     *
+     * @param ancienElement1 premier élément de l'ancienne connexion
+     * @param ancienElement2 second élément de l'ancienne connexion
+     * @param nouvelElement1 premier élément de la nouvelle connexion
+     * @param nouvelElement2 second élément de la nouvelle connexion
+     * @throws FormatInvalideException        si le format est incorrect
+     * @throws GenerateurIntrouvableException si un générateur n'existe pas
+     * @throws MaisonIntrouvableException     si une maison n'existe pas
+     * @throws ConnexionIntrouvableException  si la connexion n'existe pas
      */
     public void modifierConnexion(String ancienElement1, String ancienElement2,
-                                   String nouvelElement1, String nouvelElement2) 
-            throws FormatInvalideException, GenerateurIntrouvableException, 
+                                  String nouvelElement1, String nouvelElement2)
+            throws FormatInvalideException, GenerateurIntrouvableException,
                    MaisonIntrouvableException, ConnexionIntrouvableException {
-        
-        // Ancienne connexion
-        Maison ancienneMaison = re.trouverMaison(ancienElement1);
-        Generateur ancienGenerateur = re.trouverGenerateur(ancienElement2);
-        
-        if (ancienneMaison == null) {
-            ancienneMaison = re.trouverMaison(ancienElement2);
-        }
-        
-        if (ancienGenerateur == null) {
-            ancienGenerateur = re.trouverGenerateur(ancienElement1);
-        }
-        
+
+        Maison ancienneMaison = resolveMaison(ancienElement1, ancienElement2);
+        Generateur ancienGenerateur = resolveGenerateur(ancienElement1, ancienElement2);
+
         if (ancienneMaison == null) {
             throw new MaisonIntrouvableException("Maison introuvable dans l'ancienne connexion");
         }
-        
         if (ancienGenerateur == null) {
-            throw new GenerateurIntrouvableException("Generateur introuvable dans l'ancienne connexion");
+            throw new GenerateurIntrouvableException("Générateur introuvable dans l'ancienne connexion");
         }
-        
-        if (!ancienGenerateur.equals(re.trouverGenerateur(ancienneMaison))) {
+        if (!ancienGenerateur.equals(reseau.trouverGenerateur(ancienneMaison))) {
             throw new ConnexionIntrouvableException("Cette connexion n'existe pas");
         }
 
-        Maison nouvelleMaison = re.trouverMaison(nouvelElement1);
-        Generateur nouvelGenerateur = re.trouverGenerateur(nouvelElement2);
-        
+        Maison nouvelleMaison = resolveMaison(nouvelElement1, nouvelElement2);
+        Generateur nouvelGenerateur = resolveGenerateur(nouvelElement1, nouvelElement2);
+
         if (nouvelleMaison == null) {
-            nouvelleMaison = re.trouverMaison(nouvelElement2);
-        }
-        
-        if (nouvelGenerateur == null) {
-            nouvelGenerateur = re.trouverGenerateur(nouvelElement1);
-        }
-        
-        if (nouvelleMaison == null) { 
             throw new MaisonIntrouvableException("Maison introuvable dans la nouvelle connexion");
         }
-        
-        if (nouvelGenerateur == null) { 
-            throw new GenerateurIntrouvableException("Generateur introuvable dans la nouvelle connexion");
+        if (nouvelGenerateur == null) {
+            throw new GenerateurIntrouvableException("Générateur introuvable dans la nouvelle connexion");
         }
-        
         if (!nouvelleMaison.equals(ancienneMaison)) {
-            throw new FormatInvalideException("La maison doit rester la meme"); 
+            throw new FormatInvalideException("La maison doit rester la même");
         }
-        
-        re.supprimerConnexion(ancienneMaison);
-        re.ajouterConnexion(nouvelleMaison, nouvelGenerateur);
+
+        reseau.supprimerConnexion(ancienneMaison);
+        reseau.ajouterConnexion(nouvelleMaison, nouvelGenerateur);
     }
 
+    private Maison resolveMaison(String elem1, String elem2) {
+        Maison m = reseau.trouverMaison(elem1);
+        return m != null ? m : reseau.trouverMaison(elem2);
+    }
+
+    private Generateur resolveGenerateur(String elem1, String elem2) {
+        Generateur g = reseau.trouverGenerateur(elem1);
+        return g != null ? g : reseau.trouverGenerateur(elem2);
+    }
 }
