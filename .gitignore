@@ -1,15 +1,14 @@
-# Eclipse / IDE
 .project
 .classpath
 .settings/
 .idea/
 *.iml
 .vscode/
-
-# Build
 target/
 out/
-
-# macOS
 .DS_Store
 /bin/
+ReseauElectrique.jar
+
+
+
