@@ -37,6 +37,86 @@ public class MenuCLI implements StyleCLI {
     private final String fichierSource;
 
     // =========================================================================
+    //  POINT D'ENTRÉE STATIQUE
+    // =========================================================================
+
+    /**
+     * Lance le CLI (appelé depuis Main).
+     * @param args Arguments de ligne de commande
+     */
+    public static void lancer(String[] args) {
+        // Parser les arguments
+        String fichier = null;
+        int lambda = 10;
+        int startIndex = 0;
+        
+        if (args.length > 0 && (args[0].equalsIgnoreCase("--cli") || args[0].equalsIgnoreCase("-c"))) {
+            startIndex = 1;
+        }
+        
+        if (args.length > startIndex && !args[startIndex].startsWith("-")) {
+            fichier = args[startIndex];
+            if (args.length > startIndex + 1) {
+                try {
+                    int l = Integer.parseInt(args[startIndex + 1]);
+                    if (l > 0) lambda = l;
+                } catch (NumberFormatException ignored) {}
+            }
+        }
+        
+        // Lancer
+        Scanner sc = new Scanner(System.in);
+        banniere("GESTIONNAIRE DE RESEAU ELECTRIQUE");
+        
+        if (fichier == null) {
+            info("Mode manuel (partie 1) | Lambda : " + lambda);
+            new MenuCLI(sc, lambda).demarrer();
+        } else {
+            info("Fichier : " + fichier + " | Lambda : " + lambda);
+            File f = new File(fichier);
+            
+            if (!f.exists() || !f.isFile()) {
+                erreur("Fichier invalide : " + fichier);
+                sc.close();
+                return;
+            }
+            
+            GestionnaireReseau g = GestionnaireFichier.lireFichierReseau(f);
+            if (g == null) {
+                erreur("Impossible de charger le réseau.");
+                sc.close();
+                return;
+            }
+            
+            ok("Réseau chargé !");
+            new MenuCLI(sc, lambda, g, fichier).demarrerPartie2();
+        }
+        
+        sc.close();
+    }
+
+    /**
+     * Affiche l'aide CLI.
+     */
+    public static void afficherAide() {
+        System.out.println("""
+            USAGE : java Main [OPTIONS] [FICHIER] [LAMBDA]
+            
+            OPTIONS :
+              --help, -h        Affiche cette aide
+              --version, -v     Affiche la version
+              --gui, -g         Lance l'interface graphique
+              --cli, -c         Mode CLI (manuel ou avec fichier)
+            
+            EXEMPLES :
+              java Main                     Mode manuel (partie 1)
+              java Main reseau.txt          Charge un fichier (partie 2)
+              java Main reseau.txt 50       Charge avec lambda=50
+              java Main --gui               Lance le GUI
+            """);
+    }
+
+    // =========================================================================
     //  DÉFINITIONS DES MENUS
     // =========================================================================
 
@@ -106,8 +186,6 @@ public class MenuCLI implements StyleCLI {
      * Démarre l'application en mode manuel (Partie 1).
      */
     public void demarrer() {
-        banniere("GESTIONNAIRE DE RESEAU ELECTRIQUE");
-        
         while (true) {
             menu(MENU_PRINCIPAL);
             int choix = lireChoix();
