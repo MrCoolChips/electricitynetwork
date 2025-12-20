@@ -16,17 +16,15 @@ import up.mi.paa.model.Maison;
 import up.mi.paa.model.ReseauElectrique;
 import up.mi.paa.model.TypeConsommation;
 import up.mi.paa.service.GestionnaireReseau;
+import up.mi.paa.ui.cli.StyleCLI;
 
 /**
  * Classe utilitaire assurant la persistance des données du réseau électrique.
  * Gère la lecture et l'écriture des fichiers selon le format spécifié.
+ * 
+ * @author Groupe 10
  */
-public class GestionnaireFichier {
-
-    // Codes couleur ANSI
-    private static final String RESET = "\033[0m";
-    private static final String ROUGE = "\033[31m";
-    private static final String JAUNE = "\033[33m";
+public class GestionnaireFichier implements StyleCLI {
 
     // Mots-clés valides
     private static final String MOT_CLE_GENERATEUR = "generateur";
