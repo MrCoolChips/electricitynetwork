@@ -121,13 +121,13 @@ Fichier source : `src/up/mi/paa/Main.java`
 
 ### JavaFX (pour l'interface graphique)
 
-Télécharger JavaFX SDK depuis [openjfx.io](https://openjfx.io/) :
+> **Important** : Les bibliothèques JavaFX sont déjà fournies dans le dossier `libs/` pour Windows et macOS. Vous pouvez les utiliser directement sans téléchargement supplémentaire. Si vous souhaitez utiliser une version différente, vous pouvez télécharger JavaFX SDK depuis [openjfx.io](https://openjfx.io/).
 
 | OS | Version | Lien |
 |----|---------|------|
-| Windows | JavaFX 21 | [Download](https://download2.gluonhq.com/openjfx/21/openjfx-21_windows-x64_bin-sdk.zip) |
-| macOS | JavaFX 21 | [Download](https://download2.gluonhq.com/openjfx/21/openjfx-21_osx-x64_bin-sdk.zip) |
-| Linux | JavaFX 21 | [Download](https://download2.gluonhq.com/openjfx/21/openjfx-21_linux-x64_bin-sdk.zip) |
+| Windows | JavaFX 17 | [Download](https://download2.gluonhq.com/openjfx/17.0.17/openjfx-17.0.17_windows-x64_bin-sdk.zip) |
+| macOS | JavaFX 17 | [Download](https://download2.gluonhq.com/openjfx/17.0.17/openjfx-17.0.17_osx-x64_bin-sdk.zip) |
+| Linux | JavaFX 17 | [Download](https://download2.gluonhq.com/openjfx/17.0.17/openjfx-17.0.17_linux-x64_bin-sdk.zip) |
 
 Extraire dans `libs/windows/`, `libs/macos/` ou `libs/linux/` selon votre OS.
 
@@ -190,8 +190,11 @@ java -cp bin up.mi.paa.Main
 # Mode CLI avec fichier (Partie 2)
 java -cp bin up.mi.paa.Main <fichier.txt> [lambda]
 
-# Mode GUI (nécessite JavaFX)
+# Mode GUI - Windows (nécessite JavaFX)
 java --module-path libs/windows/lib --add-modules javafx.controls,javafx.fxml -cp bin up.mi.paa.Main --gui
+
+# Mode GUI - macOS (nécessite JavaFX)
+java --module-path libs/macos/lib --add-modules javafx.controls,javafx.fxml -cp bin up.mi.paa.Main --gui
 ```
 
 ### Méthode 2 : Via le JAR exécutable
