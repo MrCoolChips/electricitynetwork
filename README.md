@@ -90,8 +90,10 @@ electricitynetwork/
 │           └── ComparateurNaturelTest.java
 │
 ├── libs/                                  DÉPENDANCES
-│   ├── windows/lib/                       JavaFX pour Windows
-│   ├── macos/lib/                         JavaFX pour macOS
+│   ├── javafx/                            JavaFX SDK
+│   │   ├── windows/                       JavaFX pour windows
+│   │   ├── macos/                         JavaFX pour macOS
+│   │   └── linux/                         JavaFX pour Linux
 │   └── junit/                             JUnit 5
 │
 ├── docs/                                  Documentation Javadoc
@@ -129,7 +131,7 @@ Fichier source : `src/up/mi/paa/Main.java`
 | macOS | JavaFX 17 | [Download](https://download2.gluonhq.com/openjfx/17.0.17/openjfx-17.0.17_osx-x64_bin-sdk.zip) |
 | Linux | JavaFX 17 | [Download](https://download2.gluonhq.com/openjfx/17.0.17/openjfx-17.0.17_linux-x64_bin-sdk.zip) |
 
-Extraire dans `libs/windows/`, `libs/macos/` ou `libs/linux/` selon votre OS.
+Extraire dans `libs/javafx/windows/`, `libs/javafx/macos/` ou `libs/javafx/linux/` selon votre OS.
 
 ### JUnit 5 (pour les tests)
 
@@ -143,9 +145,9 @@ Télécharger [junit-platform-console-standalone](https://repo1.maven.org/maven2
 
 ```powershell
 # 1. Compiler les sources
-javac -encoding UTF-8 -d bin -cp "bin;libs/windows/lib/*" src/up/mi/paa/util/*.java src/up/mi/paa/model/*.java src/up/mi/paa/exception/*.java src/up/mi/paa/io/*.java src/up/mi/paa/service/*.java src/up/mi/paa/ui/cli/*.java src/up/mi/paa/ui/gui/components/*.java src/up/mi/paa/ui/gui/*.java src/up/mi/paa/Main.java
+javac -encoding UTF-8 -d bin -cp "bin;libs/javafx/windows/lib/*" src/up/mi/paa/util/*.java src/up/mi/paa/model/*.java src/up/mi/paa/exception/*.java src/up/mi/paa/io/*.java src/up/mi/paa/service/*.java src/up/mi/paa/ui/cli/*.java src/up/mi/paa/ui/gui/components/*.java src/up/mi/paa/ui/gui/*.java src/up/mi/paa/Main.java
 
-# 2. Compiler les tests (optionnel)
+# 2. Compiler les tests
 javac -encoding UTF-8 -d bin -cp "bin;libs/junit/junit-platform-console-standalone-1.14.1.jar" tests/up/mi/paa/model/*.java tests/up/mi/paa/service/*.java tests/up/mi/paa/io/*.java tests/up/mi/paa/util/*.java
 ```
 
@@ -153,19 +155,19 @@ javac -encoding UTF-8 -d bin -cp "bin;libs/junit/junit-platform-console-standalo
 
 ```bash
 # 1. Compiler les sources
-javac -encoding UTF-8 -d bin -cp "bin:libs/macos/lib/*" src/up/mi/paa/util/*.java src/up/mi/paa/model/*.java src/up/mi/paa/exception/*.java src/up/mi/paa/io/*.java src/up/mi/paa/service/*.java src/up/mi/paa/ui/cli/*.java src/up/mi/paa/ui/gui/components/*.java src/up/mi/paa/ui/gui/*.java src/up/mi/paa/Main.java
+javac -encoding UTF-8 -d bin -cp "bin:libs/javafx/macos/lib/*" src/up/mi/paa/util/*.java src/up/mi/paa/model/*.java src/up/mi/paa/exception/*.java src/up/mi/paa/io/*.java src/up/mi/paa/service/*.java src/up/mi/paa/ui/cli/*.java src/up/mi/paa/ui/gui/components/*.java src/up/mi/paa/ui/gui/*.java src/up/mi/paa/Main.java
 
-# 2. Compiler les tests (optionnel)
+# 2. Compiler les tests
 javac -encoding UTF-8 -d bin -cp "bin:libs/junit/junit-platform-console-standalone-1.14.1.jar" tests/up/mi/paa/model/*.java tests/up/mi/paa/service/*.java tests/up/mi/paa/io/*.java tests/up/mi/paa/util/*.java
 ```
 
 ### Linux (Terminal)
 
 ```bash
-# 1. Compiler les sources (CLI uniquement, sans GUI)
-javac -encoding UTF-8 -d bin src/up/mi/paa/util/*.java src/up/mi/paa/model/*.java src/up/mi/paa/exception/*.java src/up/mi/paa/io/*.java src/up/mi/paa/service/*.java src/up/mi/paa/ui/cli/*.java
+# 1. Compiler les sources
+javac -encoding UTF-8 -d bin -cp "bin:libs/javafx/linux/lib/*" src/up/mi/paa/util/*.java src/up/mi/paa/model/*.java src/up/mi/paa/exception/*.java src/up/mi/paa/io/*.java src/up/mi/paa/service/*.java src/up/mi/paa/ui/cli/*.java src/up/mi/paa/ui/gui/components/*.java src/up/mi/paa/ui/gui/*.java src/up/mi/paa/Main.java
 
-# 2. Compiler les tests (optionnel)
+# 2. Compiler les tests
 javac -encoding UTF-8 -d bin -cp "bin:libs/junit/junit-platform-console-standalone-1.14.1.jar" tests/up/mi/paa/model/*.java tests/up/mi/paa/service/*.java tests/up/mi/paa/io/*.java tests/up/mi/paa/util/*.java
 ```
 
@@ -191,10 +193,13 @@ java -cp bin up.mi.paa.Main
 java -cp bin up.mi.paa.Main <fichier.txt> [lambda]
 
 # Mode GUI - Windows (nécessite JavaFX)
-java --module-path libs/windows/lib --add-modules javafx.controls,javafx.fxml -cp bin up.mi.paa.Main --gui
+java --module-path libs/javafx/windows/lib --add-modules javafx.controls,javafx.fxml -cp bin up.mi.paa.Main --gui
 
 # Mode GUI - macOS (nécessite JavaFX)
-java --module-path libs/macos/lib --add-modules javafx.controls,javafx.fxml -cp bin up.mi.paa.Main --gui
+java --module-path libs/javafx/macos/lib --add-modules javafx.controls,javafx.fxml -cp bin up.mi.paa.Main --gui
+
+# Mode GUI - Linux (nécessite JavaFX)
+java --module-path libs/javafx/linux/lib --add-modules javafx.controls,javafx.fxml -cp bin up.mi.paa.Main --gui
 ```
 
 ### Méthode 2 : Via le JAR exécutable
@@ -233,10 +238,6 @@ java -jar ReseauElectrique.jar --gui
 ### Exécuter tous les tests
 
 ```bash
-# Windows
-java -jar libs/junit/junit-platform-console-standalone-1.14.1.jar -cp bin --scan-classpath
-
-# macOS / Linux
 java -jar libs/junit/junit-platform-console-standalone-1.14.1.jar -cp bin --scan-classpath
 ```
 

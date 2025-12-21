@@ -8,8 +8,12 @@ target/
 out/
 .DS_Store
 /bin/
-/libs/
 ReseauElectrique.jar
+
+# JavaFX WebKit (trop volumineux pour GitHub, non nécessaire)
+**/jfxwebkit.dll
+**/libjfxwebkit.dylib
+**/libjfxwebkit.so
 
 
 
