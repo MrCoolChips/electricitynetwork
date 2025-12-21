@@ -149,7 +149,6 @@ class CalculateurCoutsTest {
         @Test
         @DisplayName("Réseau vide retourne un coût nul")
         void coutReseauVide() {
-            // Un réseau vide ne lance pas d'exception, il retourne un coût de 0
             Couts couts = calculateur.calculerCout(reseau);
             assertNotNull(couts);
             assertEquals(0.0, couts.getCoutGlobale(), 0.001);

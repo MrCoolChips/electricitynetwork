@@ -45,7 +45,6 @@ class CoutsTest {
         @Test
         @DisplayName("Les valeurs négatives sont acceptées")
         void testValeursNegatives() {
-            // Bien que non réalistes, le conteneur doit les accepter
             Couts couts = new Couts(-1.0, -2.0, -3.0);
             
             assertEquals(-1.0, couts.getCoutGlobale(), 1e-9);
@@ -88,7 +87,6 @@ class CoutsTest {
         @DisplayName("toString retourne le format attendu")
         void testToString() {
             Couts couts = new Couts(15.55, 5.25, 1.03);
-            // Le format dépend de la locale (virgule en français, point en anglais)
             String result = couts.toString();
             assertTrue(result.contains("15") && result.contains("55"));
             assertTrue(result.contains("dispersion"));

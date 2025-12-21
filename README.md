@@ -3,27 +3,104 @@
 > Projet de Programmation Avancée et Application - S5 2025
 
 [![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=java&logoColor=white)](https://www.java.com/)
+[![JavaFX](https://img.shields.io/badge/JavaFX-007396?style=for-the-badge&logo=java&logoColor=white)](https://openjfx.io/)
+[![JUnit5](https://img.shields.io/badge/JUnit5-25A162?style=for-the-badge&logo=junit5&logoColor=white)](https://junit.org/junit5/)
 
 ---
 
 ## Table des matières
 
 1. [Informations Projet](#informations-projet)
-2. [Analyse du Problème](#analyse-du-problème)
-3. [Justification du Choix Algorithmique](#justification-du-choix-algorithmique)
-4. [Description de l'Algorithme](#description-de-lalgorithme)
-5. [Analyse de Complexité](#analyse-de-complexité)
-6. [Références et Sources](#références-et-sources)
-7. [Fonctionnalités](#fonctionnalités)
-8. [Architecture](#architecture)
-9. [Installation et Exécution](#installation-et-exécution)
-10. [Guide d'Utilisation](#guide-dutilisation)
+2. [Prérequis et Dépendances](#prérequis-et-dépendances)
+3. [Installation et Compilation](#installation-et-compilation)
+4. [Exécution](#exécution)
+5. [Tests Unitaires](#tests-unitaires)
+6. [Analyse du Problème](#analyse-du-problème)
+7. [Justification du Choix Algorithmique](#justification-du-choix-algorithmique)
+8. [Description de l'Algorithme](#description-de-lalgorithme)
+9. [Analyse de Complexité](#analyse-de-complexité)
+10. [Références et Sources](#références-et-sources)
+11. [Fonctionnalités](#fonctionnalités)
+12. [Architecture](#architecture)
+13. [Format de Fichier](#format-de-fichier)
+14. [Formules de Calcul](#formules-de-calcul)
+15. [Auteurs](#auteurs)
 
 ---
 
 ## Informations Projet
 
-### Classe Principale (Point d'entrée)
+### Arborescence du Projet
+
+```
+electricitynetwork/
+│
+├── src/                                   CODE SOURCE
+│   └── up/mi/paa/
+│       ├── Main.java                      Point d'entrée
+│       ├── model/                         Entités métier
+│       │   ├── Generateur.java
+│       │   ├── Maison.java
+│       │   ├── TypeConsommation.java
+│       │   ├── ReseauElectrique.java
+│       │   └── Couts.java
+│       ├── service/                       Logique métier
+│       │   ├── GestionnaireReseau.java
+│       │   ├── CalculateurCouts.java
+│       │   └── OptimiseurReseau.java
+│       ├── io/                            Entrées/Sorties
+│       │   └── GestionnaireFichier.java
+│       ├── ui/                            Interfaces utilisateur
+│       │   ├── cli/
+│       │   │   ├── MenuCLI.java
+│       │   │   ├── AfficheurCLI.java
+│       │   │   └── StyleCLI.java
+│       │   └── gui/
+│       │       ├── ReseauElectriqueUI.java
+│       │       ├── StyleUI.java
+│       │       └── components/
+│       │           ├── VueReseau.java
+│       │           ├── VueStatistiques.java
+│       │           ├── VueInventaire.java
+│       │           └── VueTopBar.java
+│       ├── util/                          Utilitaires
+│       │   └── ComparateurNaturel.java
+│       └── exception/                     Exceptions personnalisées
+│           ├── FormatInvalideException.java
+│           ├── GenerateurIntrouvableException.java
+│           ├── MaisonIntrouvableException.java
+│           ├── ConnexionExistanteException.java
+│           └── ConnexionIntrouvableException.java
+│
+├── tests/                                 TESTS UNITAIRES
+│   └── up/mi/paa/
+│       ├── model/
+│       │   ├── CoutsTest.java
+│       │   ├── GenerateurTest.java
+│       │   ├── MaisonTest.java
+│       │   ├── ReseauElectriqueTest.java
+│       │   └── TypeConsommationTest.java
+│       ├── service/
+│       │   ├── CalculateurCoutsTest.java
+│       │   ├── GestionnaireReseauTest.java
+│       │   └── OptimiseurReseauTest.java
+│       ├── io/
+│       │   └── GestionnaireFichierTest.java
+│       └── util/
+│           └── ComparateurNaturelTest.java
+│
+├── libs/                                  DÉPENDANCES
+│   ├── windows/lib/                       JavaFX pour Windows
+│   ├── macos/lib/                         JavaFX pour macOS
+│   └── junit/                             JUnit 5
+│
+├── docs/                                  Documentation Javadoc
+├── assets/                                Ressources
+│
+└── README.md                              Ce fichier
+```
+
+### Point d'Entrée
 
 La classe principale contenant la méthode `main` est :
 
@@ -31,26 +108,153 @@ La classe principale contenant la méthode `main` est :
 up.mi.paa.Main
 ```
 
-Le fichier source correspondant se trouve à l'emplacement suivant :
+Fichier source : `src/up/mi/paa/Main.java`
 
-```
-src/up/mi/paa/Main.java
+---
+
+## Prérequis et Dépendances
+
+### Java
+
+- **JDK 17** ou supérieur (recommandé : JDK 21)
+- Vérifier l'installation : `java --version`
+
+### JavaFX (pour l'interface graphique)
+
+Télécharger JavaFX SDK depuis [openjfx.io](https://openjfx.io/) :
+
+| OS | Version | Lien |
+|----|---------|------|
+| Windows | JavaFX 21 | [Download](https://download2.gluonhq.com/openjfx/21/openjfx-21_windows-x64_bin-sdk.zip) |
+| macOS | JavaFX 21 | [Download](https://download2.gluonhq.com/openjfx/21/openjfx-21_osx-x64_bin-sdk.zip) |
+| Linux | JavaFX 21 | [Download](https://download2.gluonhq.com/openjfx/21/openjfx-21_linux-x64_bin-sdk.zip) |
+
+Extraire dans `libs/windows/`, `libs/macos/` ou `libs/linux/` selon votre OS.
+
+### JUnit 5 (pour les tests)
+
+Télécharger [junit-platform-console-standalone](https://repo1.maven.org/maven2/org/junit/platform/junit-platform-console-standalone/1.14.1/junit-platform-console-standalone-1.14.1.jar) et placer dans `libs/junit/`.
+
+---
+
+## Installation et Compilation
+
+### Windows (PowerShell)
+
+```powershell
+# 1. Compiler les sources
+javac -encoding UTF-8 -d bin -cp "bin;libs/windows/lib/*" src/up/mi/paa/util/*.java src/up/mi/paa/model/*.java src/up/mi/paa/exception/*.java src/up/mi/paa/io/*.java src/up/mi/paa/service/*.java src/up/mi/paa/ui/cli/*.java src/up/mi/paa/ui/gui/components/*.java src/up/mi/paa/ui/gui/*.java src/up/mi/paa/Main.java
+
+# 2. Compiler les tests (optionnel)
+javac -encoding UTF-8 -d bin -cp "bin;libs/junit/junit-platform-console-standalone-1.14.1.jar" tests/up/mi/paa/model/*.java tests/up/mi/paa/service/*.java tests/up/mi/paa/io/*.java tests/up/mi/paa/util/*.java
 ```
 
-### Exécution du Programme
+### macOS (Terminal)
 
 ```bash
-# Partie 1 : Mode manuel (sans arguments)
-java -cp bin up.mi.paa.Main
+# 1. Compiler les sources
+javac -encoding UTF-8 -d bin -cp "bin:libs/macos/lib/*" src/up/mi/paa/util/*.java src/up/mi/paa/model/*.java src/up/mi/paa/exception/*.java src/up/mi/paa/io/*.java src/up/mi/paa/service/*.java src/up/mi/paa/ui/cli/*.java src/up/mi/paa/ui/gui/components/*.java src/up/mi/paa/ui/gui/*.java src/up/mi/paa/Main.java
 
-# Partie 2 : Mode fichier avec optimisation automatique
-java -cp bin up.mi.paa.Main <chemin_fichier> [lambda]
-
-# Exemple concret
-java -cp bin up.mi.paa.Main reseau.txt 10
+# 2. Compiler les tests (optionnel)
+javac -encoding UTF-8 -d bin -cp "bin:libs/junit/junit-platform-console-standalone-1.14.1.jar" tests/up/mi/paa/model/*.java tests/up/mi/paa/service/*.java tests/up/mi/paa/io/*.java tests/up/mi/paa/util/*.java
 ```
 
-Le paramètre `lambda` (optionnel, défaut = 10) correspond au coefficient de pénalisation de la surcharge dans la fonction de coût.
+### Linux (Terminal)
+
+```bash
+# 1. Compiler les sources (CLI uniquement, sans GUI)
+javac -encoding UTF-8 -d bin src/up/mi/paa/util/*.java src/up/mi/paa/model/*.java src/up/mi/paa/exception/*.java src/up/mi/paa/io/*.java src/up/mi/paa/service/*.java src/up/mi/paa/ui/cli/*.java
+
+# 2. Compiler les tests (optionnel)
+javac -encoding UTF-8 -d bin -cp "bin:libs/junit/junit-platform-console-standalone-1.14.1.jar" tests/up/mi/paa/model/*.java tests/up/mi/paa/service/*.java tests/up/mi/paa/io/*.java tests/up/mi/paa/util/*.java
+```
+
+> **Note** : Le séparateur de classpath est `;` sous Windows et `:` sous macOS/Linux.
+
+---
+
+## Exécution
+
+### Méthode 1 : Via les classes compilées
+
+```bash
+# Afficher l'aide
+java -cp bin up.mi.paa.Main --help
+
+# Afficher la version
+java -cp bin up.mi.paa.Main --version
+
+# Mode CLI interactif (Partie 1)
+java -cp bin up.mi.paa.Main
+
+# Mode CLI avec fichier (Partie 2)
+java -cp bin up.mi.paa.Main <fichier.txt> [lambda]
+
+# Mode GUI (nécessite JavaFX)
+java --module-path libs/windows/lib --add-modules javafx.controls,javafx.fxml -cp bin up.mi.paa.Main --gui
+```
+
+### Méthode 2 : Via le JAR exécutable
+
+```bash
+# Afficher l'aide
+java -jar ReseauElectrique.jar --help
+
+# Afficher la version
+java -jar ReseauElectrique.jar --version
+
+# Mode CLI interactif
+java -jar ReseauElectrique.jar
+
+# Mode CLI avec fichier
+java -jar ReseauElectrique.jar reseau.txt 10
+
+# Mode GUI
+java -jar ReseauElectrique.jar --gui
+```
+
+### Options de ligne de commande
+
+| Option | Description |
+|--------|-------------|
+| `--help`, `-h` | Affiche l'aide |
+| `--version`, `-v` | Affiche la version |
+| `--gui`, `-g` | Lance l'interface graphique |
+| `--cli`, `-c` | Lance le mode CLI |
+| `<fichier>` | Charge un réseau depuis un fichier |
+| `<fichier> <lambda>` | Charge un réseau avec un coefficient lambda personnalisé |
+---
+
+## Tests Unitaires
+
+### Exécuter tous les tests
+
+```bash
+# Windows
+java -jar libs/junit/junit-platform-console-standalone-1.14.1.jar -cp bin --scan-classpath
+
+# macOS / Linux
+java -jar libs/junit/junit-platform-console-standalone-1.14.1.jar -cp bin --scan-classpath
+```
+
+### Exécuter un test spécifique
+
+```bash
+java -jar libs/junit/junit-platform-console-standalone-1.14.1.jar -cp bin --select-class <nom.complet.de.la.classe>
+
+# Exemples :
+java -jar libs/junit/junit-platform-console-standalone-1.14.1.jar -cp bin --select-class up.mi.paa.model.GenerateurTest
+java -jar libs/junit/junit-platform-console-standalone-1.14.1.jar -cp bin --select-class up.mi.paa.service.OptimiseurReseauTest
+```
+
+### Classes de test disponibles
+
+| Package | Classes |
+|---------|---------|
+| `up.mi.paa.model` | `CoutsTest`, `GenerateurTest`, `MaisonTest`, `ReseauElectriqueTest`, `TypeConsommationTest` |
+| `up.mi.paa.service` | `CalculateurCoutsTest`, `GestionnaireReseauTest`, `OptimiseurReseauTest` |
+| `up.mi.paa.io` | `GestionnaireFichierTest` |
+| `up.mi.paa.util` | `ComparateurNaturelTest` |
 
 ---
 
@@ -385,90 +589,41 @@ Wikipédia. Problème de Bin Packing. Wikipédia, l’encyclopédie libre. https
 
 ---
 
-## Fonctionnalités Implémentées
+## Fonctionnalités
 
-### Partie 1 : Mode Manuel (Interface Interactive)
+### Partie 1 : Mode CLI Interactif
 
-Le mode manuel permet la construction et la manipulation du réseau électrique de manière interactive via une interface en ligne de commande.
+- **Gestion des générateurs** : Ajout, modification et suppression
+- **Gestion des maisons** : Ajout avec type de consommation (BASSE, NORMAL, FORTE)
+- **Gestion des connexions** : Création et suppression de liens maison-générateur
+- **Validation du réseau** : Vérification de l'intégrité avant évaluation
+- **Calcul du coût** : Évaluation de la dispersion et surcharge
 
-**Gestion des générateurs** : Ajout et modification de générateurs avec spécification du nom et de la capacité maximale de production. Si un générateur du même nom existe, sa capacité est mise à jour.
+### Partie 2 : Mode Fichier avec Optimisation
 
-**Gestion des maisons** : Ajout et modification de maisons avec spécification du nom et du type de consommation (BASSE, NORMAL, FORTE). Le système supporte la modification du type si la maison existe déjà.
+- **Lecture de fichier** : Import de fichiers avec validation syntaxique
+- **Gestion des erreurs** : Messages détaillés avec numéro de ligne
+- **Optimisation automatique** : Algorithme Glouton + Recuit Simulé
+- **Sauvegarde** : Export de la solution optimisée
 
-**Gestion des connexions** : Création et suppression de connexions entre maisons et générateurs. L'ordre des arguments est flexible (G1 M1 ou M1 G1 sont équivalents).
+### Interface Graphique (JavaFX)
 
-**Validation du réseau** : Vérification de l'intégrité du réseau avant passage en mode évaluation. Chaque maison doit être connectée à exactement un générateur.
+- **Visualisation du réseau** : Représentation graphique des connexions
+- **Statistiques en temps réel** : Affichage des coûts et taux d'utilisation
+- **Inventaire** : Liste des générateurs et maisons
+- **Optimisation interactive** : Lancement et visualisation de l'optimisation
 
-**Calcul du coût** : Évaluation de la fonction de coût intégrant dispersion et surcharge pondérée.
+### Tests unitaires
+- **Tests unitaires** : Couverture complète avec JUnit 5 (158 tests)
 
-### Partie 2 : Mode Fichier (Optimisation Automatique)
-
-Le mode fichier permet le chargement d'un réseau depuis un fichier et son optimisation automatique.
-
-**Lecture de fichier** : Import d'un réseau au format Prolog avec validation syntaxique stricte. L'ordre des déclarations est contrôlé (générateurs, puis maisons, puis connexions).
-
-**Gestion des erreurs** : Messages d'erreur détaillés indiquant la ligne problématique et le type d'erreur. Un système de suggestion propose des corrections pour les mots-clés mal orthographiés.
-
-**Résolution automatique** : Application de l'algorithme d'optimisation (Glouton + Recuit Simulé) avec affichage des coûts avant et après optimisation.
-
-**Sauvegarde** : Export de la solution optimisée vers un fichier, avec vérification de l'existence préalable du fichier cible.
-
-### Fonctionnalités Additionnelles
-
-**Interface colorée** : Utilisation de codes ANSI pour améliorer la lisibilité (tags [OK], [ERREUR], [INFO]).
-
-**Suggestions de correction** : Proposition de corrections pour les erreurs de frappe dans les mots-clés du fichier d'entrée.
-
-### Limitations Actuelles
-
-L'interface graphique JavaFX est en cours de développement (fichiers présents mais non finalisés). L'export vers des formats alternatifs (CSV, JSON) n'est pas implémenté. La couverture des tests unitaires JUnit est partielle.
+### Documentation
+- **JavaDoc** : Javadoc complète pour toutes les classes
 
 ---
-
-## Types de Consommation
-- **BASSE** : 10 kW
-- **NORMAL** : 20 kW
-- **FORTE** : 40 kW
 
 ## Architecture du Projet
 
 Le projet adopte une architecture en couches respectant le principe de séparation des responsabilités. Cette organisation facilite la maintenance, les tests et l'évolution du code.
-
-```
-src/up/mi/paa/
-│
-├── Main.java                              Point d'entrée de l'application
-│                                          Analyse les arguments et délègue
-│                                          au mode approprié (manuel/fichier)
-│
-├── model/                                 COUCHE MODÈLE
-│   ├── Generateur.java                    Entité représentant un générateur
-│   ├── Maison.java                        Entité représentant une maison
-│   ├── TypeConsommation.java              Énumération {BASSE, NORMAL, FORTE}
-│   ├── ReseauElectrique.java              Graphe biparti maisons-générateurs
-│   └── Couts.java                         Encapsulation des composantes du coût
-│
-├── service/                               COUCHE SERVICE (Logique métier)
-│   ├── GestionnaireReseau.java            Opérations CRUD sur le réseau
-│   ├── CalculateurCouts.java              Calcul de dispersion et surcharge
-│   └── OptimiseurReseau.java              Implémentation de l'algorithme
-│                                          d'optimisation (Glouton + Recuit)
-│
-├── io/                                    COUCHE ENTRÉES/SORTIES
-│   └── GestionnaireFichier.java           Lecture et écriture de fichiers
-│                                          au format Prolog
-│
-├── ui/                                    COUCHE INTERFACE UTILISATEUR
-│   └── MenuCLI.java                       Menus et dialogues en ligne
-│                                          de commande
-│
-└── exception/                             EXCEPTIONS PERSONNALISÉES
-    ├── FormatInvalideException.java       Format d'entrée incorrect
-    ├── GenerateurIntrouvableException.java
-    ├── MaisonIntrouvableException.java
-    ├── ConnexionExistanteException.java
-    └── ConnexionIntrouvableException.java
-```
 
 ### Description des Couches
 
@@ -476,7 +631,7 @@ src/up/mi/paa/
 
 **Couche Service** : Contient la logique métier indépendante de l'interface utilisateur. L'algorithme d'optimisation est encapsulé dans `OptimiseurReseau`, permettant son utilisation dans différents contextes (CLI, GUI, tests).
 
-**Couche IO** : Gère la persistance et la sérialisation. Le format Prolog choisi offre une syntaxe lisible et facilement parsable.
+**Couche IO** : Gère la persistance et la sérialisation. Le format fichier choisi offre une syntaxe lisible et facilement parsable.
 
 **Couche UI** : Gère l'interaction avec l'utilisateur. La séparation permet d'envisager différentes interfaces (CLI, JavaFX) partageant la même logique métier.
 
@@ -484,65 +639,11 @@ src/up/mi/paa/
 
 ---
 
-## Installation et Exécution
-
-### Prérequis
-
-- Java Development Kit (JDK) version 8 ou supérieure
-- Système d'exploitation : Windows, Linux ou macOS
-
-### Compilation
-
-```bash
-# Compilation de l'ensemble des sources
-javac -d bin -encoding UTF-8 \
-    src/up/mi/paa/*.java \
-    src/up/mi/paa/model/*.java \
-    src/up/mi/paa/exception/*.java \
-    src/up/mi/paa/service/*.java \
-    src/up/mi/paa/ui/*.java \
-    src/up/mi/paa/io/*.java
-```
-
-Sous Windows (PowerShell) :
-```powershell
-javac -d bin -encoding UTF-8 `
-    src\up\mi\paa\*.java `
-    src\up\mi\paa\model\*.java `
-    src\up\mi\paa\exception\*.java `
-    src\up\mi\paa\service\*.java `
-    src\up\mi\paa\ui\*.java `
-    src\up\mi\paa\io\*.java
-```
-
-### Exécution
-
-```bash
-# Mode manuel (Partie 1)
-java -cp bin up.mi.paa.Main
-
-# Mode fichier avec optimisation (Partie 2)
-java -cp bin up.mi.paa.Main <chemin_fichier> [lambda]
-
-# Exemple
-java -cp bin up.mi.paa.Main reseau.txt 10
-```
-
-### Script d'Exécution Rapide (Windows)
-
-Un script `run.bat` est fourni pour simplifier la compilation et l'exécution :
-
-```bash
-run.bat
-```
-
----
-
 ## Format de Fichier
 
 Le format de fichier utilise une syntaxe Prolog :
 
-```prolog
+```
 generateur(G1,100).
 generateur(G2,80).
 maison(M1,FORTE).
@@ -556,124 +657,6 @@ connexion(G2,M2).
 - Noms alphanumériques uniquement
 - Chaque ligne termine par un point `.`
 
-## Guide d'Utilisation
-
----
-
-### PARTIE 1 : Mode Manuel (Interface Interactive)
-
-Le mode manuel se lance sans arguments :
-
-```bash
-java -cp bin up.mi.paa.Main
-```
-
-#### Menu Principal
-
-```
-┌────────────────────────────────────────────────┐
-│              MENU PRINCIPAL                    │
-├────────────────────────────────────────────────┤
-│  1 | Ajouter un generateur                     │
-│  2 | Ajouter une maison                        │
-│  3 | Ajouter une connexion                     │
-│  4 | Supprimer une connexion                   │
-│  5 | Fin                                       │
-└────────────────────────────────────────────────┘
-```
-
-#### Exemples d'Utilisation - Partie 1
-
-**1. Ajouter un générateur**
-```
-> Nom et capacite (ex: G1 60) : G1 60
-[OK] Generateur G1 cree !
-```
-
-**2. Ajouter une maison**
-```
-Types de consommation: BASSE, NORMAL, FORTE
-> Nom et Consommation (ex: M1 FORTE) : M1 FORTE
-[OK] Maison M1 creee !
-```
-
-**3. Créer une connexion**
-```
-> Generateur et maison (ex: G1 M1 ou M1 G1) : G1 M1
-[OK] Connexion creee !
-```
-
-**4. Supprimer une connexion**
-```
-> Generateur et maison (ex: G1 M1 ou M1 G1) : G1 M1
-[OK] Connexion supprimee !
-```
-
-#### Menu d'Évaluation
-
-Après validation du réseau (option 5), vous accédez aux fonctionnalités d'analyse :
-
-```
-┌────────────────────────────────────────────────┐
-│           EVALUATION DU RESEAU                 │
-├────────────────────────────────────────────────┤
-│  1 | Calculer le cout du reseau                │
-│  2 | Modifier une connexion                    │
-│  3 | Afficher le reseau                        │
-│  4 | Fin                                       │
-└────────────────────────────────────────────────┘
-```
-
----
-
-### PARTIE 2 : Mode Fichier (Optimisation Automatique)
-
-Le mode fichier se lance avec le chemin du fichier en argument :
-
-```bash
-java -cp bin up.mi.paa.Main <chemin_fichier> [lambda]
-
-# Exemple
-java -cp bin up.mi.paa.Main reseau.txt 10
-```
-
-Le paramètre `lambda` (optionnel, défaut = 10) correspond au coefficient de pénalisation de la surcharge.
-
-#### Menu Optimisation
-
-```
-┌────────────────────────────────────────────────┐
-│              MENU PARTIE 2                     │
-├────────────────────────────────────────────────┤
-│  1 | Resolution automatique                    │
-│  2 | Sauvegarder la solution                   │
-│  3 | Fin                                       │
-└────────────────────────────────────────────────┘
-```
-
-#### Exemples d'Utilisation - Partie 2
-
-**1. Résolution automatique**
-
-L'option 1 applique l'algorithme d'optimisation (Glouton + Recuit Simulé) et affiche les coûts avant et après :
-
-```
-[INFO] Optimisation en cours...
-[OK] Optimisation terminee !
-
-Cout avant optimisation : 4.56
-Cout apres optimisation : 0.14
-```
-
-**2. Sauvegarder la solution**
-
-L'option 2 permet d'exporter la solution optimisée vers un fichier :
-
-```
-> Chemin du fichier de sortie : solution.txt
-[OK] Solution sauvegardee dans solution.txt
-```
-
 ---
 
 ## Formules de Calcul
@@ -681,7 +664,7 @@ L'option 2 permet d'exporter la solution optimisée vers un fichier :
 ### Coût Total
 ```
 Coût = dispersion + (λ × surcharge)
-où λ = 10 (constante de pénalité)
+où λ = 10 (par défaut)
 ```
 
 ### Surcharge
@@ -697,28 +680,6 @@ dispersion = Σ |taux_utilisation(générateur) - taux_moyen|
 ### Taux d'Utilisation
 ```
 taux = demande_totale / capacité_maximale
-```
-
-## Gestion des Erreurs
-
-Le système intègre une gestion des erreurs via cinq exceptions personnalisées, chacune correspondant à un cas d'erreur spécifique du domaine métier :
-
-- `FormatInvalideException` : Entrée utilisateur ou fichier mal formaté
-- `GenerateurIntrouvableException` : Référence à un générateur inexistant
-- `MaisonIntrouvableException` : Référence à une maison inexistante
-- `ConnexionExistanteException` : Tentative de création d'une connexion déjà établie
-- `ConnexionIntrouvableException` : Tentative de suppression d'une connexion inexistante
-
-Les messages d'erreur sont préfixés par le tag `[ERREUR]` pour une identification immédiate. Les avertissements utilisent le tag `[ATTENTION]`.
-
----
-
-## Documentation et Génération Javadoc
-
-La documentation technique du code peut être générée via Javadoc :
-
-```bash
-javadoc -d docs -encoding UTF-8 -charset UTF-8 -sourcepath src -subpackages up.mi.paa
 ```
 
 ---

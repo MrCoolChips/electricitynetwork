@@ -139,8 +139,6 @@ class GestionnaireReseauTest {
         @DisplayName("Exception si maison introuvable")
         void maisonIntrouvable() {
             gestionnaire.ajouterOuModifierGenerateur("G1", 100);
-            // Ne pas ajouter de maison - on teste qu'elle est introuvable
-            // Le code trouve G1 comme générateur, mais M_INCONNU n'existe pas comme maison
             assertThrows(MaisonIntrouvableException.class, 
                 () -> gestionnaire.creerConnexion("M_INCONNU", "G1"));
         }
@@ -211,7 +209,6 @@ class GestionnaireReseauTest {
         @Test
         @DisplayName("Réseau vide détecte l'absence de maisons et générateurs")
         void reseauVide() {
-            // Un réseau vide doit signaler l'absence de maisons et générateurs
             String erreurs = gestionnaire.verifierValiditeReseau();
             assertTrue(erreurs.contains("maison") || erreurs.contains("générateur") || erreurs.contains("generateur"));
         }
@@ -259,11 +256,9 @@ class GestionnaireReseauTest {
             gestionnaire.ajouterOuModifierGenerateur("G1", 100);
             gestionnaire.ajouterOuModifierMaison("M1", TypeConsommation.NORMAL);
             gestionnaire.ajouterOuModifierMaison("M2", TypeConsommation.FORTE);
-            // Maisons non connectées
 
             String erreurs = gestionnaire.verifierValiditeReseau();
             
-            // Le message d'erreur doit mentionner les maisons non connectées
             assertTrue(erreurs.contains("M1") || erreurs.contains("M2") || erreurs.contains("connexion"));
         }
     }

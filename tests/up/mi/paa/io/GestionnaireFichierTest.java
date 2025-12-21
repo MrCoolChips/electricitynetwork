@@ -204,7 +204,6 @@ class GestionnaireFichierTest {
                 "maison(M1,BASSE)."
             ));
 
-            // La capacité nulle est considérée comme invalide par le parseur
             GestionnaireReseau res = GestionnaireFichier.lireFichierReseau(cheminFichier.toFile());
             assertNull(res);
         }
@@ -266,7 +265,6 @@ class GestionnaireFichierTest {
             File fichierExport = tempDir.resolve("types.txt").toFile();
             GestionnaireFichier.ecrireFichierReseau(fichierExport, reseau);
 
-            // Vérifie que le fichier a été créé et contient les données
             assertTrue(fichierExport.exists());
             String contenu = Files.readString(fichierExport.toPath());
             assertTrue(contenu.contains("G1"));
