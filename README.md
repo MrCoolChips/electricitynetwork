@@ -123,7 +123,7 @@ Fichier source : `src/up/mi/paa/Main.java`
 
 ### JavaFX (pour l'interface graphique)
 
-> **Important** : Les bibliothèques JavaFX sont déjà fournies dans le dossier `libs/` pour Windows et macOS. Vous pouvez les utiliser directement sans téléchargement supplémentaire. Si vous souhaitez utiliser une version différente, vous pouvez télécharger JavaFX SDK depuis [openjfx.io](https://openjfx.io/).
+> **Important** : Les bibliothèques JavaFX sont déjà fournies dans le dossier `libs/` pour Windows, macOS et linux. Vous pouvez les utiliser directement sans téléchargement supplémentaire. Si vous souhaitez utiliser une version différente, vous pouvez télécharger JavaFX SDK depuis [openjfx.io](https://openjfx.io/).
 
 | OS | Version | Lien |
 |----|---------|------|
