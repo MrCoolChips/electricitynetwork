@@ -30,6 +30,11 @@
 
 ## Informations Projet
 
+<img width="1396" height="872" alt="Capture d’écran 2026-03-02 à 16 01 20" src="https://github.com/user-attachments/assets/47bfb72d-f864-4da5-9417-66f94f285fd4" />
+
+<img width="1391" height="884" alt="Capture d’écran 2026-03-02 à 16 02 35" src="https://github.com/user-attachments/assets/e328755c-38ef-4e2d-9de8-9074d400ee90" />
+
+
 ### Arborescence du Projet
 
 ```
